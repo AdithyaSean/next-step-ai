@@ -3,7 +3,7 @@ Base model interface for the Career Guidance System
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 import numpy as np
 import pandas as pd
 
@@ -15,70 +15,64 @@ class BaseModel(ABC):
         self.model = None
     
     @abstractmethod
-    def train(self, X: np.ndarray, y: np.ndarray) -> None:
+    def train(self, X: pd.DataFrame, career_targets: np.ndarray, education_targets: np.ndarray) -> None:
         """
         Train the model on the given data
         
         Args:
-            X: Training features
-            y: Training labels
+            X: Training features DataFrame
+            career_targets: Career path target labels
+            education_targets: Education path target labels
         """
         pass
     
     @abstractmethod
-    def predict(self, X: np.ndarray) -> np.ndarray:
+    def predict(self, X: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
         """
         Make predictions for the given input
         
         Args:
-            X: Input features
+            X: Input features DataFrame
             
         Returns:
-            Predicted labels
+            Tuple of (career_predictions, education_predictions)
         """
         pass
     
     @abstractmethod
-    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+    def predict_proba(self, X: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
         """
         Get prediction probabilities for the given input
         
         Args:
-            X: Input features
+            X: Input features DataFrame
             
         Returns:
-            Prediction probabilities
+            Tuple of (career_probabilities, education_probabilities)
         """
         pass
     
-    @abstractmethod
-    def evaluate(self, X: np.ndarray, y: np.ndarray) -> Dict[str, float]:
+    def get_feature_importance(self) -> Dict[str, np.ndarray]:
         """
-        Evaluate model performance
+        Get feature importance scores if the model supports it
         
-        Args:
-            X: Test features
-            y: Test labels
-            
         Returns:
-            Dictionary of evaluation metrics
+            Dictionary with feature importance scores for career and education predictions
         """
-        pass
+        if hasattr(self.model, 'feature_importances_'):
+            return {
+                'career': self.model.feature_importances_[:len(self.config['data']['features'])],
+                'education': self.model.feature_importances_[len(self.config['data']['features']):]
+            }
+        return {}
     
-    def save(self, path: str) -> None:
+    def save_model(self, path: str) -> None:
         """Save model to disk"""
-        pass
+        if self.model is not None:
+            import joblib
+            joblib.dump(self.model, path)
     
-    def load(self, path: str) -> None:
+    def load_model(self, path: str) -> None:
         """Load model from disk"""
-        pass
-    
-    @abstractmethod
-    def get_feature_importance(self) -> Dict[str, float]:
-        """
-        Get feature importance scores
-        
-        Returns:
-            Dictionary mapping feature names to importance scores
-        """
-        pass
+        import joblib
+        self.model = joblib.load(path)

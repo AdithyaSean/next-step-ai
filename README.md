@@ -110,52 +110,110 @@ Our career guidance system uses a three-stage prediction approach:
 
 The system accepts student profiles with varying levels of detail:
 
-1. **Basic Profile (O/L Only)**:
-```python
-{
-    "ol_mathematics": 85,
-    "ol_science": 92,
-    "ol_english": 78,
-    "ol_sinhala": 88,
-    "ol_history": 75,
-    "interests": ["Technology", "Science"],
-    "skills": ["Problem Solving", "Analysis"]
-}
-```
+### Example Input Formats
 
-2. **Intermediate Profile (O/L + A/L)**:
+#### 1. O/L Student Profile
 ```python
 {
-    # O/L Results
-    "ol_mathematics": 85,
-    "ol_science": 92,
-    # ... other O/L subjects ...
-    
-    # A/L Information
-    "al_stream": "Science",
-    "al_subject1": 75,  # Physics
-    "al_subject2": 82,  # Chemistry
-    "al_subject3": 88,  # Combined Mathematics
-    "al_zscore": 1.8
-}
-```
+    # Core O/L Subjects (Required)
+    "ol_mathematics": 85,  # Mathematics
+    "ol_science": 78,     # Science
+    "ol_english": 82,     # English
 
-3. **Complete Profile (O/L + A/L + University)**:
-```python
-{
-    # O/L and A/L results...
-    
-    # University Information
-    "university_program": "Computer Science",
-    "university_gpa": 3.5,
-    "university_completed": true,
-    
     # Additional Information
-    "interests": ["Technology", "AI", "Research"],
-    "skills": ["Programming", "Data Analysis"],
-    "extracurricular": ["Tech Club Leader", "Hackathon Winner"]
+    "interests": ["Science", "Technology", "Mathematics"],
+    "skills": ["Problem Solving", "Analytical Thinking"],
+    "extracurricular": ["Science Society", "Mathematics Olympiad"]
 }
 ```
+
+#### 2. A/L Student Profile
+```python
+{
+    # Core O/L Results (Required)
+    "ol_mathematics": 85,
+    "ol_science": 78,
+    "ol_english": 82,
+
+    # A/L Stream Information
+    "al_stream": "Physical Science",  # One of: "Physical Science", "Biological Science", "Commerce", "Arts"
+    
+    # Stream-specific subjects
+    # For Physical Science Stream
+    "al_physics": 75,
+    "al_chemistry": 82,
+    "al_mathematics": 88,  # Combined Mathematics
+    "al_zscore": 1.8,
+
+    # Additional Information
+    "interests": ["Engineering", "Technology"],
+    "skills": ["Mathematics", "Physics", "Programming"],
+    "extracurricular": ["Robotics Club", "Science Exhibition"]
+}
+```
+
+#### 3. Alternative A/L Stream Examples
+
+##### Biological Science Stream
+```python
+{
+    "al_stream": "Biological Science",
+    "al_biology": 85,
+    "al_chemistry": 78,
+    "al_physics": 82,
+    "al_zscore": 1.9,
+    "interests": ["Medicine", "Research"],
+    "skills": ["Laboratory Work", "Analysis"]
+}
+```
+
+##### Commerce Stream
+```python
+{
+    "al_stream": "Commerce",
+    "al_accounting": 88,
+    "al_business_studies": 85,
+    "al_economics": 82,
+    "al_zscore": 1.7,
+    "interests": ["Business", "Finance"],
+    "skills": ["Financial Analysis", "Management"]
+}
+```
+
+##### Arts Stream
+```python
+{
+    "al_stream": "Arts",
+    "al_zscore": 1.6,
+    "interests": ["Languages", "Social Sciences", "History"],
+    "skills": ["Research", "Critical Thinking", "Writing"],
+    "subjects": ["Political Science", "Geography", "Languages"]  # Main subjects taken
+}
+```
+
+### Notes on Sri Lankan Education System
+
+1. **O/L (Ordinary Level)**
+   - Core subjects focused on Mathematics, Science, and English
+   - Grades typically range from 0-100
+   - Passing grade is typically 40
+
+2. **A/L (Advanced Level)**
+   - Four main streams: Physical Science, Biological Science, Commerce, and Arts
+   - Z-score calculation considers:
+     - Raw marks in each subject
+     - Island-wide performance
+     - District quota system
+
+3. **Stream-Specific Requirements**
+   - Physical Science: Mathematics, Physics, Chemistry
+   - Biological Science: Biology, Physics, Chemistry
+   - Commerce: Business Studies, Accounting, Economics
+   - Arts: Flexible combination of subjects (e.g., Languages, Geography, Political Science)
+
+4. **University Admission**
+   - Based on Z-score ranking
+   - Stream-specific course eligibility
 
 ## Output Format
 

@@ -1,5 +1,5 @@
 model:
-  type: "gradient_boosting"  # or "decision_tree" or "neural_network"
+  type: "gradient_boosting"
   params:
     max_depth: 6
     learning_rate: 0.1
@@ -13,19 +13,28 @@ data:
   train_path: "data/processed/train.csv"
   test_path: "data/processed/test.csv"
   features:
-    academic:
-      - "ol_maths"
+    core_subjects:
+      - "ol_mathematics"
       - "ol_science"
       - "ol_english"
+    progress_status:
+      - "ol_passed"          # Whether passed O/L
+      - "al_attempted"       # Whether attempted A/L
+      - "al_passed"         # Whether passed A/L
+      - "university_entrance"  # Whether qualified for university
+      - "university_completed" # Whether completed university
+    al_info:
       - "al_stream"
-      - "al_subjects"
-    interests:
-      - "preferred_subjects"
-      - "hobbies"
+      - "al_physics"
+      - "al_chemistry"
+      - "al_commerce"
+      - "al_zscore"
+    university_info:
+      - "university_program"
+      - "university_gpa"
+    additional:
+      - "interests"
       - "skills"
-    activities:
-      - "extracurricular"
-      - "achievements"
   target_columns:
     - "career_paths"
     - "education_paths"
@@ -41,8 +50,8 @@ training:
   
 preprocessing:
   numerical_features:
-    strategy: "standard_scaler"  # or "minmax_scaler"
+    strategy: "standard_scaler"
   categorical_features:
-    strategy: "label_encoding"  # or "one_hot_encoding"
+    strategy: "label_encoding"
   text_features:
-    strategy: "tfidf"  # or "count_vectorizer"
+    strategy: "tfidf"  # For processing interests, skills

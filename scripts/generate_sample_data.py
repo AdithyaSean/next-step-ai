@@ -5,261 +5,301 @@ Generate realistic sample data for the career guidance system including complete
 import pandas as pd
 import numpy as np
 from pathlib import Path
+import random
+from typing import Dict, List
 
 # Define sample data characteristics
 SAMPLE_SIZE = 1000
 
-# O/L Subjects and passing criteria
+# O/L Core Subjects
 OL_SUBJECTS = {
-    'Mathematics': {'weight': 1.0},
-    'Science': {'weight': 1.0},
-    'English': {'weight': 1.0},
-    'Sinhala': {'weight': 0.8},
-    'History': {'weight': 0.8},
-    'Religion': {'weight': 0.7},
-    'Literature': {'weight': 0.7},
-    'ICT': {'weight': 0.8},
-    'Commerce': {'weight': 0.8}
+    'Mathematics': {'weight': 1.0, 'pass_mark': 40},
+    'Science': {'weight': 1.0, 'pass_mark': 40},
+    'English': {'weight': 1.0, 'pass_mark': 40}
 }
 
 # A/L Streams and subjects
 AL_STREAMS = {
-    'Science': {
-        'subjects': ['Physics', 'Chemistry', 'Biology/ICT/Combined Maths'],
-        'required_ol_grades': {'Mathematics': 65, 'Science': 65, 'English': 50},
-        'zscore_threshold': 1.2
+    'Physical Science': {
+        'subjects': ['Physics', 'Chemistry', 'Mathematics'],
+        'required_ol_grades': {'Mathematics': 65, 'Science': 65},
+        'zscore_threshold': 1.2,
+        'career_paths': ['Software Engineer', 'Engineer', 'Data Scientist']
+    },
+    'Biological Science': {
+        'subjects': ['Biology', 'Physics', 'Chemistry'],
+        'required_ol_grades': {'Mathematics': 60, 'Science': 65},
+        'zscore_threshold': 1.2,
+        'career_paths': ['Doctor', 'Research Scientist']
     },
     'Commerce': {
         'subjects': ['Business Studies', 'Accounting', 'Economics'],
-        'required_ol_grades': {'Mathematics': 50, 'English': 50, 'Commerce': 65},
-        'zscore_threshold': 1.0
+        'required_ol_grades': {'Mathematics': 50},
+        'zscore_threshold': 1.0,
+        'career_paths': ['Business Analyst', 'Accountant', 'Manager']
     },
     'Arts': {
-        'subjects': ['Geography', 'Political Science', 'Languages'],
-        'required_ol_grades': {'Sinhala': 50, 'History': 50},
-        'zscore_threshold': 0.8
+        'subjects': [],  # Flexible subject combination
+        'required_ol_grades': {},
+        'zscore_threshold': 0.8,
+        'career_paths': ['Teacher', 'Consultant']
     }
 }
 
-# University Programs
+# University Programs by Stream
 UNIVERSITY_PROGRAMS = {
-    'Science': [
-        {'name': 'Engineering', 'zscore_min': 1.8, 'dropout_rate': 0.1},
-        {'name': 'Medicine', 'zscore_min': 2.0, 'dropout_rate': 0.05},
-        {'name': 'Computer Science', 'zscore_min': 1.6, 'dropout_rate': 0.15},
-        {'name': 'Physical Science', 'zscore_min': 1.4, 'dropout_rate': 0.2}
+    'Physical Science': [
+        'Engineering',
+        'Computer Science',
+        'Physical Science'
+    ],
+    'Biological Science': [
+        'Medicine',
+        'Biological Science'
     ],
     'Commerce': [
-        {'name': 'Business Administration', 'zscore_min': 1.5, 'dropout_rate': 0.12},
-        {'name': 'Finance', 'zscore_min': 1.6, 'dropout_rate': 0.1},
-        {'name': 'Economics', 'zscore_min': 1.4, 'dropout_rate': 0.15},
-        {'name': 'Management', 'zscore_min': 1.3, 'dropout_rate': 0.18}
+        'Business Administration',
+        'Management'
     ],
     'Arts': [
-        {'name': 'Psychology', 'zscore_min': 1.3, 'dropout_rate': 0.15},
-        {'name': 'Sociology', 'zscore_min': 1.2, 'dropout_rate': 0.2},
-        {'name': 'Languages', 'zscore_min': 1.1, 'dropout_rate': 0.18},
-        {'name': 'Political Science', 'zscore_min': 1.0, 'dropout_rate': 0.22}
+        'Arts and Humanities'
     ]
 }
 
-# Career paths based on education level and program
-CAREER_PATHS = {
-    'ol_dropout': [
-        'Skilled Labor', 'Small Business Owner', 'Sales Representative', 
-        'Technical Training', 'Vocational Training'
+# Sample interests and skills by stream
+INTERESTS_BY_STREAM = {
+    'Physical Science': [
+        'Technology', 'Mathematics', 'Physics', 'Programming',
+        'Engineering', 'Problem Solving', 'Innovation'
     ],
-    'al_dropout': [
-        'Administrative Assistant', 'Customer Service', 'Sales Manager',
-        'Technical Specialist', 'Small Business Owner'
+    'Biological Science': [
+        'Biology', 'Chemistry', 'Research', 'Healthcare',
+        'Laboratory Work', 'Life Sciences'
     ],
-    'university_dropout': [
-        'Junior Developer', 'Business Analyst', 'Marketing Associate',
-        'Technical Support', 'Entrepreneur'
+    'Commerce': [
+        'Business', 'Economics', 'Finance', 'Management',
+        'Entrepreneurship', 'Marketing'
     ],
-    'graduate': {
-        'Engineering': ['Software Engineer', 'Civil Engineer', 'Systems Engineer'],
-        'Medicine': ['Doctor', 'Medical Researcher'],
-        'Computer Science': ['Software Developer', 'Data Scientist', 'IT Consultant'],
-        'Business Administration': ['Business Analyst', 'Project Manager', 'Management Consultant'],
-        'Finance': ['Financial Analyst', 'Investment Banker', 'Accountant'],
-        'Psychology': ['Counselor', 'HR Manager', 'Research Assistant']
-    }
+    'Arts': [
+        'Languages', 'Social Sciences', 'History', 'Geography',
+        'Literature', 'Research', 'Writing'
+    ]
 }
 
-def generate_ol_results():
-    """Generate O/L results with realistic grade distribution"""
-    results = {}
-    for subject in OL_SUBJECTS:
-        # Generate grades with a normal distribution
-        grades = np.random.normal(65, 15, SAMPLE_SIZE)
-        # Clip grades between 0 and 100
-        grades = np.clip(grades, 0, 100)
-        results[f'ol_{subject.lower()}'] = grades.round(2)
-    
-    # Calculate if passed O/L (minimum 3 core subjects and total 6 subjects above 35)
-    core_subjects = ['Mathematics', 'Science', 'English', 'Sinhala']
-    for i in range(SAMPLE_SIZE):
-        core_passes = sum(1 for subj in core_subjects if results[f'ol_{subj.lower()}'][i] >= 35)
-        total_passes = sum(1 for subj in OL_SUBJECTS if results[f'ol_{subj.lower()}'][i] >= 35)
-        results['ol_passed'] = core_passes >= 3 and total_passes >= 6
-    
-    return pd.DataFrame(results)
+SKILLS_BY_STREAM = {
+    'Physical Science': [
+        'Mathematical Analysis', 'Problem Solving', 'Critical Thinking',
+        'Programming', 'Data Analysis', 'Logical Reasoning'
+    ],
+    'Biological Science': [
+        'Laboratory Skills', 'Research', 'Analysis', 'Critical Thinking',
+        'Observation', 'Documentation'
+    ],
+    'Commerce': [
+        'Financial Analysis', 'Management', 'Communication',
+        'Problem Solving', 'Decision Making', 'Leadership'
+    ],
+    'Arts': [
+        'Research', 'Writing', 'Critical Thinking', 'Analysis',
+        'Communication', 'Project Management'
+    ]
+}
 
-def determine_al_stream(ol_results):
+def generate_ol_results() -> pd.DataFrame:
+    """Generate O/L results with realistic grade distribution"""
+    data = []
+    for _ in range(SAMPLE_SIZE):
+        record = {}
+        passed_all = True
+        
+        # Generate core subject results
+        for subject, info in OL_SUBJECTS.items():
+            # Generate mark with normal distribution
+            mark = np.random.normal(65, 15)
+            mark = max(min(mark, 100), 0)  # Clip between 0 and 100
+            record[f'ol_{subject.lower()}'] = round(mark, 2)
+            passed_all = passed_all and mark >= info['pass_mark']
+        
+        record['ol_passed'] = passed_all
+        data.append(record)
+    
+    return pd.DataFrame(data)
+
+def determine_al_stream(ol_results: pd.DataFrame) -> pd.Series:
     """Determine suitable A/L stream based on O/L results"""
     streams = []
     for _, row in ol_results.iterrows():
         if not row['ol_passed']:
-            streams.append('dropout')
+            streams.append(None)
             continue
             
-        # Check qualification for each stream
-        qualified_streams = []
-        for stream, requirements in AL_STREAMS.items():
-            qualified = all(row[f'ol_{subj.lower()}'] >= grade 
-                          for subj, grade in requirements['required_ol_grades'].items())
-            if qualified:
-                qualified_streams.append(stream)
+        # Calculate eligibility for each stream
+        eligible_streams = []
+        for stream, info in AL_STREAMS.items():
+            eligible = True
+            for subject, required_grade in info['required_ol_grades'].items():
+                if row[f'ol_{subject.lower()}'] < required_grade:
+                    eligible = False
+                    break
+            if eligible:
+                eligible_streams.append(stream)
         
-        if qualified_streams:
-            # Choose stream based on best performing relevant subjects
-            streams.append(np.random.choice(qualified_streams))
+        # Choose stream based on grades and requirements
+        if eligible_streams:
+            if row['ol_mathematics'] >= 65 and row['ol_science'] >= 65:
+                # Prefer Physical Science if good at math and science
+                stream = 'Physical Science' if 'Physical Science' in eligible_streams else eligible_streams[0]
+            elif row['ol_science'] >= 65:
+                # Prefer Biological Science if good at science
+                stream = 'Biological Science' if 'Biological Science' in eligible_streams else eligible_streams[0]
+            else:
+                stream = random.choice(eligible_streams)
         else:
-            streams.append('dropout')
+            stream = 'Arts'  # Default to Arts if not eligible for others
+            
+        streams.append(stream)
     
-    return streams
+    return pd.Series(streams)
 
-def generate_al_results(ol_results, al_streams):
+def generate_al_results(ol_results: pd.DataFrame, streams: pd.Series) -> pd.DataFrame:
     """Generate A/L results including Z-scores"""
-    results = {
-        'al_stream': al_streams,
-        'al_attempted': [stream != 'dropout' for stream in al_streams]
-    }
-    
-    # Generate subject grades and Z-scores
-    for stream in AL_STREAMS:
-        for subject in AL_STREAMS[stream]['subjects']:
-            results[f'al_{subject.lower().replace("/", "_")}'] = [np.nan] * SAMPLE_SIZE
+    data = []
+    for (_, ol_row), stream in zip(ol_results.iterrows(), streams):
+        record = {}
+        
+        # Copy O/L results
+        for col in ol_results.columns:
+            record[col] = ol_row[col]
             
-    results['al_zscore'] = [np.nan] * SAMPLE_SIZE
-    results['al_passed'] = [False] * SAMPLE_SIZE
-    
-    for i, stream in enumerate(al_streams):
-        if stream != 'dropout':
-            # Generate grades for stream subjects
+        if stream is None:
+            record.update({
+                'al_attempted': False,
+                'al_passed': False,
+                'al_stream': None,
+                'al_zscore': 0.0
+            })
+            data.append(record)
+            continue
+            
+        record.update({
+            'al_attempted': True,
+            'al_stream': stream
+        })
+        
+        # Generate subject results based on stream
+        if stream != 'Arts':
             for subject in AL_STREAMS[stream]['subjects']:
-                grades = np.random.normal(65, 15)
-                results[f'al_{subject.lower().replace("/", "_")}'][i] = np.clip(grades, 0, 100)
-            
-            # Generate Z-score
-            zscore = np.random.normal(1.2, 0.4)
-            results['al_zscore'][i] = np.clip(zscore, -2, 3)
-            
-            # Determine if passed A/L
-            subject_grades = [results[f'al_{subj.lower().replace("/", "_")}'][i] 
-                            for subj in AL_STREAMS[stream]['subjects']]
-            results['al_passed'][i] = all(grade >= 35 for grade in subject_grades if not np.isnan(grade))
+                # Correlate with O/L performance
+                base = (ol_row['ol_mathematics'] + ol_row['ol_science']) / 2
+                mark = np.random.normal(base, 10)
+                mark = max(min(mark, 100), 0)
+                record[f'al_{subject.lower()}'] = round(mark, 2)
+        
+        # Generate Z-score
+        base_zscore = np.random.normal(1.5, 0.5)
+        zscore = max(min(base_zscore, 3.0), 0.0)
+        record['al_zscore'] = round(zscore, 3)
+        
+        # Determine if passed A/L
+        record['al_passed'] = zscore >= AL_STREAMS[stream]['zscore_threshold']
+        
+        # Generate interests and skills
+        stream_interests = INTERESTS_BY_STREAM[stream]
+        stream_skills = SKILLS_BY_STREAM[stream]
+        
+        record['interests'] = random.sample(stream_interests, k=random.randint(2, 4))
+        record['skills'] = random.sample(stream_skills, k=random.randint(2, 4))
+        
+        data.append(record)
     
-    return pd.DataFrame(results)
+    return pd.DataFrame(data)
 
-def generate_university_data(al_results):
-    """Generate university education data"""
-    results = {
-        'university_entrance': [False] * SAMPLE_SIZE,
-        'university_program': ['None'] * SAMPLE_SIZE,
-        'university_completed': [False] * SAMPLE_SIZE,
-        'university_gpa': [0.0] * SAMPLE_SIZE
-    }
-    
-    for i, row in al_results.iterrows():
-        if row['al_passed'] and not pd.isna(row['al_zscore']):
-            stream = row['al_stream']
-            if stream != 'dropout' and row['al_zscore'] >= AL_STREAMS[stream]['zscore_threshold']:
-                # Qualified for university
-                results['university_entrance'][i] = True
-                
-                # Select program based on Z-score
-                qualified_programs = []
-                for prog in UNIVERSITY_PROGRAMS[stream]:
-                    if row['al_zscore'] >= prog['zscore_min']:
-                        qualified_programs.append(prog)
-                
-                if qualified_programs:
-                    program = np.random.choice(qualified_programs)
-                    results['university_program'][i] = program['name']
-                    
-                    # Generate GPA and completion status
-                    if np.random.random() > program['dropout_rate']:
-                        results['university_completed'][i] = True
-                        results['university_gpa'][i] = np.clip(np.random.normal(3.2, 0.4), 0, 4.0)
-    
-    return pd.DataFrame(results)
-
-def determine_career_path(education_data):
-    """Determine career path based on education journey"""
-    career_paths = []
-    
-    for _, row in education_data.iterrows():
-        if not row['ol_passed']:
-            career_paths.append(np.random.choice(CAREER_PATHS['ol_dropout']))
-        elif not row['al_attempted'] or not row['al_passed']:
-            career_paths.append(np.random.choice(CAREER_PATHS['al_dropout']))
-        elif not row['university_entrance'] or not row['university_completed']:
-            career_paths.append(np.random.choice(CAREER_PATHS['university_dropout']))
+def determine_education_and_career(al_results: pd.DataFrame) -> pd.DataFrame:
+    """Determine education path and career based on A/L results"""
+    data = []
+    for _, row in al_results.iterrows():
+        record = row.to_dict()
+        
+        if not row['al_passed']:
+            record.update({
+                'university_entrance': False,
+                'university_program': None,
+                'university_completed': False,
+                'university_gpa': 0.0,
+                'education_path': 'Technical Training',
+                'career_path': random.choice(['Technical Support', 'Sales', 'Administrative'])
+            })
         else:
-            program = row['university_program']
-            possible_careers = CAREER_PATHS['graduate'].get(program, ['General Professional'])
-            career_paths.append(np.random.choice(possible_careers))
+            stream = row['al_stream']
+            zscore = row['al_zscore']
+            
+            # Determine university entrance and program
+            possible_programs = UNIVERSITY_PROGRAMS[stream]
+            if zscore >= 1.6:  # University entrance cutoff
+                record['university_entrance'] = True
+                record['university_program'] = random.choice(possible_programs)
+                
+                # Generate GPA and completion status
+                completion_prob = 0.85  # 85% chance of completing
+                record['university_completed'] = random.random() < completion_prob
+                
+                if record['university_completed']:
+                    record['university_gpa'] = round(random.uniform(2.5, 4.0), 2)
+                    record['education_path'] = record['university_program']
+                    record['career_path'] = random.choice(AL_STREAMS[stream]['career_paths'])
+                else:
+                    record['university_gpa'] = round(random.uniform(1.5, 2.5), 2)
+                    record['education_path'] = 'Incomplete Degree'
+                    record['career_path'] = 'Technical Support'
+            else:
+                record.update({
+                    'university_entrance': False,
+                    'university_program': None,
+                    'university_completed': False,
+                    'university_gpa': 0.0,
+                    'education_path': 'Professional Certification',
+                    'career_path': random.choice(['Technical Support', 'Sales', 'Administrative'])
+                })
+        
+        data.append(record)
     
-    return career_paths
-
-def generate_sample_data():
-    """Generate synthetic student data with complete educational journey"""
-    
-    np.random.seed(42)
-    
-    # Generate O/L results
-    ol_data = generate_ol_results()
-    
-    # Determine A/L streams
-    al_streams = determine_al_stream(ol_data)
-    
-    # Generate A/L results
-    al_data = generate_al_results(ol_data, al_streams)
-    
-    # Generate university data
-    university_data = generate_university_data(al_data)
-    
-    # Combine all educational data
-    education_data = pd.concat([ol_data, al_data, university_data], axis=1)
-    
-    # Determine career paths
-    education_data['career_path'] = determine_career_path(education_data)
-    
-    return education_data
+    return pd.DataFrame(data)
 
 def main():
+    """Generate and save sample data"""
     # Create data directory if it doesn't exist
     data_dir = Path('data/raw')
     data_dir.mkdir(parents=True, exist_ok=True)
     
-    # Generate and save data
-    df = generate_sample_data()
-    output_file = data_dir / 'sample_data.csv'
-    df.to_csv(output_file, index=False)
+    # Generate data
+    print("Generating O/L results...")
+    ol_results = generate_ol_results()
     
-    print(f"Generated {len(df)} sample records in {output_file}")
-    print("\nSample data preview:")
-    print(df.head())
-    print("\nEducation Journey Statistics:")
-    print(f"O/L Pass Rate: {(df['ol_passed'].mean() * 100):.1f}%")
-    print(f"A/L Attempt Rate: {(df['al_attempted'].mean() * 100):.1f}%")
-    print(f"A/L Pass Rate: {(df['al_passed'].mean() * 100):.1f}%")
-    print(f"University Entrance Rate: {(df['university_entrance'].mean() * 100):.1f}%")
-    print(f"University Completion Rate: {(df['university_completed'].mean() * 100):.1f}%")
-    print("\nCareer Path Distribution:")
-    print(df['career_path'].value_counts().head())
+    print("Determining A/L streams...")
+    streams = determine_al_stream(ol_results)
     
+    print("Generating A/L results...")
+    al_results = generate_al_results(ol_results, streams)
+    
+    print("Determining education and career paths...")
+    final_data = determine_education_and_career(al_results)
+    
+    # Save data
+    output_path = data_dir / 'sample_data.csv'
+    final_data.to_csv(output_path, index=False)
+    print(f"Sample data saved to {output_path}")
+    
+    # Print summary statistics
+    print("\nData Generation Summary:")
+    print(f"Total records: {len(final_data)}")
+    print(f"O/L pass rate: {(final_data['ol_passed']).mean():.1%}")
+    print(f"A/L attempt rate: {(final_data['al_attempted']).mean():.1%}")
+    print(f"A/L pass rate: {(final_data['al_passed']).mean():.1%}")
+    print(f"University entrance rate: {(final_data['university_entrance']).mean():.1%}")
+    print(f"University completion rate: {(final_data['university_completed']).mean():.1%}")
+    
+    print("\nStream Distribution:")
+    print(final_data['al_stream'].value_counts(normalize=True))
+
 if __name__ == '__main__':
     main()
