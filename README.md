@@ -1,5 +1,7 @@
 # Next Step - Career Guidance System
 
+A machine learning system to help Sri Lankan students make informed career decisions based on their academic performance, interests, and skills.
+
 ## Overview
 This repository is dedicated to exploring and identifying the best AI model and datasets for building Next Step, a career guidance application. The final product will be a multiplatform application developed using Flutter for our Innovation and Entrepreneurship module and NIBM HND in Software Engineering's capstone project. The app aims to assist Sri Lankan students in making informed educational and career decisions.
 
@@ -36,46 +38,84 @@ This exploratory project will proceed as follows:
 4. **Iteration:** Fine-tune models and preprocess data to improve performance.
 5. **Integration Preparation:** Ensure the chosen model is ready for integration with the Flutter frontend.
 
-## Getting Started
+## Quick Start
 
-### Prerequisites
-- Python 3.8+
-- Virtual environment manager (e.g., venv or conda)
-- Libraries: pandas, numpy, scikit-learn, matplotlib, tensorflow/keras, pytorch (depending on the chosen models)
+1. Set up your environment:
+```bash
+# Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-### Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/next-step-career-guidance.git
-   cd next-step-career-guidance
-   ```
-2. Create a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+# Install dependencies
+pip install -e ".[dev]"
+```
 
-### Usage
-1. Preprocess the dataset:
-   ```bash
-   python preprocess_data.py
-   ```
-2. Train a model:
-   ```bash
-   python train_model.py --model [model_name]
-   ```
-3. Evaluate the model:
-   ```bash
-   python evaluate_model.py --model [model_name]
-   ```
-4. Generate predictions:
-   ```bash
-   python predict.py --input [input_file.json]
-   ```
+2. Generate sample data for testing:
+```bash
+python scripts/generate_sample_data.py
+```
+This will create sample student data in `data/raw/sample_data.csv`
+
+3. Train and test the model:
+```bash
+# Prepare the data
+python scripts/prepare_data.py --input data/raw/sample_data.csv
+
+# Train the model
+python scripts/train_model.py --data data/processed/train.csv
+
+# Evaluate the model
+python scripts/evaluate_model.py --model models/model.joblib --test-data data/processed/test.csv
+```
+
+4. Make predictions:
+```bash
+python scripts/predict.py --model models/model.joblib --input new_student_data.csv
+```
+
+## Input Data Format
+
+The system expects student data with the following information:
+- OL subject results (Mathematics, Science, English, History)
+- AL stream (Science, Commerce, Arts)
+- Interests (e.g., Technology, Business, Healthcare)
+- Skills (e.g., Programming, Communication, Leadership)
+
+Example CSV format:
+```csv
+ol_mathematics,ol_science,ol_english,ol_history,al_stream,interests,skills
+85,92,78,88,Science,"Technology, Healthcare","Programming, Analysis"
+```
+
+## Output Format
+
+The system provides career predictions in JSON format:
+```json
+{
+  "predictions": [
+    {
+      "career_path": {
+        "prediction": "Software Engineer",
+        "confidence": 0.85
+      }
+    }
+  ],
+  "feature_importance": {
+    "ol_mathematics": 0.25,
+    "ol_science": 0.20,
+    "interests": 0.30,
+    "skills": 0.25
+  }
+}
+```
+
+## Model Details
+
+We use a Gradient Boosting model that:
+- Handles both numerical (exam scores) and categorical (interests, skills) data
+- Provides prediction confidence scores
+- Explains which factors influenced the prediction
+- Can be easily retrained with new data
 
 ## Directory Structure
 ```
