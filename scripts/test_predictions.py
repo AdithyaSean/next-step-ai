@@ -3,12 +3,45 @@ import sys
 import os
 import yaml
 import json
+import argparse
+import joblib
+from pathlib import Path
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from src.models.career_guidance_model import CareerGuidanceModel
 from src.models.preprocessing import PreprocessingPipeline
 from sklearn.metrics import accuracy_score
+
+# Set up argument parser
+parser = argparse.ArgumentParser()
+parser.add_argument('--train', type=str, help='Path to new training data CSV file')
+args = parser.parse_args()
+
+# Check if we should load existing model or create new one
+model_path = Path('models/career_guidance_model.joblib')
+preprocessor_path = Path('models/preprocessor.joblib')
+
+if args.train:
+    print("\nChecking model status...")
+    if model_path.exists() and preprocessor_path.exists():
+        print("Loading existing model and preprocessor...")
+        model = joblib.load(model_path)
+        preprocessor = joblib.load(preprocessor_path)
+        
+        # Train on new data
+        print(f"\nIncremental training with new data from: {args.train}")
+        new_df = pd.read_csv(args.train)
+        X_new = preprocessor.preprocess_features(new_df)
+        y_new = preprocessor.preprocess_targets(new_df)
+        model.fit(X_new, y_new)
+        
+        # Save updated model
+        joblib.dump(model, model_path)
+        joblib.dump(preprocessor, preprocessor_path)
+        print("Updated model saved successfully")
+    else:
+        print("No existing model found. Training new model...")
 
 # Load configuration and data stats
 with open('src/config/config.yaml', 'r') as f:

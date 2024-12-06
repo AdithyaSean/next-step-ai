@@ -61,17 +61,27 @@ This will create sample student data in `data/raw/sample_data.csv`
 # Prepare the data
 python scripts/prepare_data.py --input data/raw/sample_data.csv
 
-# Train the model
+# Initial model training
 python scripts/train_model.py --data data/processed/train.csv
 
-# Evaluate the model
-python scripts/evaluate_model.py --model models/model.joblib --test-data data/processed/test.csv
+# Test predictions or train incrementally
+python scripts/test_predictions.py  # For testing only
+python scripts/test_predictions.py --train path/to/new_data.csv  # For incremental training
 ```
 
-4. Make predictions:
-```bash
-python scripts/predict.py --model models/model.joblib --input new_student_data.csv
-```
+The model supports two modes of operation:
+- **Testing Mode**: Evaluates model performance without modifying the trained model
+- **Training Mode**: Updates the existing model with new data to improve predictions
+
+### Important Notes:
+- New training data must follow the same format as the original dataset
+- The model and preprocessor states are saved in `models/` directory
+- Training mode will preserve previous learning while incorporating new patterns
+- Success rates and confidence scores are shown for each prediction
+
+## Model Training and Testing
+
+1. Regular testing (won't update model):
 
 ## Model Architecture
 
