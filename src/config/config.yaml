@@ -1,0 +1,48 @@
+model:
+  type: "gradient_boosting"  # or "decision_tree" or "neural_network"
+  params:
+    max_depth: 6
+    learning_rate: 0.1
+    n_estimators: 100
+    min_child_weight: 1
+    subsample: 0.8
+    colsample_bytree: 0.8
+    random_state: 42
+
+data:
+  train_path: "data/processed/train.csv"
+  test_path: "data/processed/test.csv"
+  features:
+    academic:
+      - "ol_maths"
+      - "ol_science"
+      - "ol_english"
+      - "al_stream"
+      - "al_subjects"
+    interests:
+      - "preferred_subjects"
+      - "hobbies"
+      - "skills"
+    activities:
+      - "extracurricular"
+      - "achievements"
+  target_columns:
+    - "career_paths"
+    - "education_paths"
+
+training:
+  test_size: 0.2
+  validation_size: 0.2
+  metrics:
+    - "accuracy"
+    - "precision"
+    - "recall"
+    - "f1"
+  
+preprocessing:
+  numerical_features:
+    strategy: "standard_scaler"  # or "minmax_scaler"
+  categorical_features:
+    strategy: "label_encoding"  # or "one_hot_encoding"
+  text_features:
+    strategy: "tfidf"  # or "count_vectorizer"
