@@ -73,49 +73,181 @@ python scripts/evaluate_model.py --model models/model.joblib --test-data data/pr
 python scripts/predict.py --model models/model.joblib --input new_student_data.csv
 ```
 
+## Model Architecture
+
+Our career guidance system uses a three-stage prediction approach:
+
+### Stage 1: A/L Stream Predictor
+- **Input**: O/L subject results
+- **Model**: XGBoost Classifier
+- **Output**: Recommended A/L streams with confidence scores
+- **Features**:
+  - Core subject performance (Mathematics, Science, English, etc.)
+  - Stream-specific eligibility checks
+  - Confidence scores for each stream
+
+### Stage 2: University Program Predictor
+- **Input**: O/L + A/L results, Z-score
+- **Model**: LightGBM Classifier
+- **Output**: Recommended university programs
+- **Features**:
+  - Program-specific eligibility checks
+  - Z-score requirements
+  - Subject requirements validation
+  - Success probability scores
+
+### Stage 3: Career Path Predictor
+- **Input**: Complete educational profile
+- **Model**: Ensemble (XGBoost + Random Forest)
+- **Output**: Career path recommendations
+- **Features**:
+  - Weighted ensemble predictions
+  - Career-specific requirements
+  - Required skills analysis
+  - Industry alignment scoring
+
 ## Input Data Format
 
-The system expects student data with the following information:
-- OL subject results (Mathematics, Science, English, History)
-- AL stream (Science, Commerce, Arts)
-- Interests (e.g., Technology, Business, Healthcare)
-- Skills (e.g., Programming, Communication, Leadership)
+The system accepts student profiles with varying levels of detail:
 
-Example CSV format:
-```csv
-ol_mathematics,ol_science,ol_english,ol_history,al_stream,interests,skills
-85,92,78,88,Science,"Technology, Healthcare","Programming, Analysis"
+1. **Basic Profile (O/L Only)**:
+```python
+{
+    "ol_mathematics": 85,
+    "ol_science": 92,
+    "ol_english": 78,
+    "ol_sinhala": 88,
+    "ol_history": 75,
+    "interests": ["Technology", "Science"],
+    "skills": ["Problem Solving", "Analysis"]
+}
+```
+
+2. **Intermediate Profile (O/L + A/L)**:
+```python
+{
+    # O/L Results
+    "ol_mathematics": 85,
+    "ol_science": 92,
+    # ... other O/L subjects ...
+    
+    # A/L Information
+    "al_stream": "Science",
+    "al_subject1": 75,  # Physics
+    "al_subject2": 82,  # Chemistry
+    "al_subject3": 88,  # Combined Mathematics
+    "al_zscore": 1.8
+}
+```
+
+3. **Complete Profile (O/L + A/L + University)**:
+```python
+{
+    # O/L and A/L results...
+    
+    # University Information
+    "university_program": "Computer Science",
+    "university_gpa": 3.5,
+    "university_completed": true,
+    
+    # Additional Information
+    "interests": ["Technology", "AI", "Research"],
+    "skills": ["Programming", "Data Analysis"],
+    "extracurricular": ["Tech Club Leader", "Hackathon Winner"]
+}
 ```
 
 ## Output Format
 
-The system provides career predictions in JSON format:
-```json
+The system provides stage-appropriate recommendations:
+
+1. **A/L Stream Recommendations**:
+```python
 {
-  "predictions": [
-    {
-      "career_path": {
-        "prediction": "Software Engineer",
-        "confidence": 0.85
-      }
-    }
-  ],
-  "feature_importance": {
-    "ol_mathematics": 0.25,
-    "ol_science": 0.20,
-    "interests": 0.30,
-    "skills": 0.25
-  }
+    "recommendations": [
+        {
+            "stream": "Science",
+            "confidence": 0.85,
+            "eligible": true,
+            "requirements_met": {
+                "ol_mathematics": true,
+                "ol_science": true
+            }
+        },
+        # ... other streams ...
+    ]
 }
 ```
 
-## Model Details
+2. **University Program Recommendations**:
+```python
+{
+    "recommendations": [
+        {
+            "program": "Computer Science",
+            "success_probability": 0.78,
+            "eligible": true,
+            "requirements_status": {
+                "stream_match": true,
+                "zscore_met": true,
+                "subject_requirements": {
+                    "combined_mathematics": {
+                        "required": 65,
+                        "actual": 88,
+                        "met": true
+                    }
+                }
+            }
+        },
+        # ... other programs ...
+    ]
+}
+```
 
-We use a Gradient Boosting model that:
-- Handles both numerical (exam scores) and categorical (interests, skills) data
-- Provides prediction confidence scores
-- Explains which factors influenced the prediction
-- Can be easily retrained with new data
+3. **Career Path Recommendations**:
+```python
+{
+    "recommendations": [
+        {
+            "career": "Software Engineer",
+            "confidence": 0.82,
+            "requirements": {
+                "education_level": "University",
+                "preferred_programs": ["Computer Science", "Engineering"],
+                "min_gpa": 2.75
+            },
+            "skills_needed": [
+                "Programming",
+                "Problem Solving",
+                "Software Development",
+                "Database Management"
+            ]
+        },
+        # ... other careers ...
+    ]
+}
+```
+
+## Current Status
+
+1. **Completed**:
+   - Data generation pipeline
+   - Three-stage model architecture
+   - Base model implementations
+   - Configuration system
+   - Preprocessing pipeline
+
+2. **In Progress**:
+   - Model training pipeline
+   - Evaluation metrics
+   - Hyperparameter tuning
+   - API layer development
+
+3. **Upcoming**:
+   - Test suite implementation
+   - Model deployment strategy
+   - Integration with Flutter frontend
+   - User feedback loop
 
 ## Project Structure
 
