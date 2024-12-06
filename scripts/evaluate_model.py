@@ -103,15 +103,29 @@ def main():
         results = {}
         
         for i, target in enumerate(config.data_config['target_columns']):
+            # Get the label encoder for this target
+            encoder = None
+            if hasattr(model, 'label_encoders'):
+                encoder = model.label_encoders.get(target) or model.label_encoders.get(f'target_{i}')
+            
+            # Convert string labels to numeric if needed
+            y_true = y[:, i]
+            y_pred = predictions[:, i]
+            
+            if encoder is not None and y_true.dtype == object:
+                y_true = encoder.transform(y_true)
+                if y_pred.dtype == object:
+                    y_pred = encoder.transform(y_pred)
+            
             target_results = {
                 'classification_report': classification_report(
-                    y[:, i],
-                    predictions[:, i],
+                    y_true,
+                    y_pred,
                     output_dict=True
                 ),
                 'confusion_matrix': confusion_matrix(
-                    y[:, i],
-                    predictions[:, i]
+                    y_true,
+                    y_pred
                 ).tolist()
             }
             results[target] = target_results
@@ -119,7 +133,7 @@ def main():
             # Plot confusion matrix
             plot_confusion_matrix(
                 target_results['confusion_matrix'],
-                [f'Class {i}' for i in range(len(np.unique(y[:, i])))],
+                [f'Class {i}' for i in range(len(np.unique(y_true)))],
                 output_dir / f'{target}_confusion_matrix.png'
             )
         

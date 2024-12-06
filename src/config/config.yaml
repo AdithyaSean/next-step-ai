@@ -36,8 +36,8 @@ data:
       - "interests"
       - "skills"
   target_columns:
-    - "career_paths"
-    - "education_paths"
+    - "career_path"
+    - "education_path"
 
 training:
   test_size: 0.2

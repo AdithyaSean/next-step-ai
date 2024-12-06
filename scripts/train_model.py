@@ -5,9 +5,12 @@ Script to train the career guidance model
 import argparse
 import logging
 from pathlib import Path
+from typing import Tuple
 
 import pandas as pd
 import yaml
+from sklearn.preprocessing import LabelEncoder
+import numpy as np
 
 from src.config.config import Config
 from src.data.preprocessing import DataPreprocessor
@@ -23,6 +26,39 @@ def parse_args():
     parser.add_argument('--output', type=str, default='models',
                       help='Directory to save trained model')
     return parser.parse_args()
+
+def preprocess_data(df: pd.DataFrame, config: Config, preprocessor: DataPreprocessor) -> Tuple[pd.DataFrame, np.ndarray]:
+    """Preprocess features and targets"""
+    # Preprocess features
+    X = preprocessor.preprocess_features(df)
+    
+    # Handle categorical columns
+    categorical_columns = ['al_stream', 'university_program']
+    for col in categorical_columns:
+        if col in X.columns:
+            # Convert to categorical and encode
+            X[col] = pd.Categorical(X[col]).codes
+    
+    # Remove target columns from features if present
+    target_columns = config.data_config['target_columns']
+    X = X.drop(columns=target_columns, errors='ignore')
+    
+    # Prepare target variables
+    y_raw = df[target_columns].values
+    
+    # Initialize label encoders for each target
+    label_encoders = {
+        col: LabelEncoder() for col in target_columns
+    }
+    
+    # Encode each target column
+    y = np.zeros_like(y_raw, dtype=int)
+    for i, col in enumerate(target_columns):
+        # Convert any NaN values to 'Unknown' before encoding
+        y_raw[:, i] = np.where(pd.isna(y_raw[:, i]), 'Unknown', y_raw[:, i])
+        y[:, i] = label_encoders[col].fit_transform(y_raw[:, i])
+    
+    return X, y, label_encoders
 
 def main():
     # Parse arguments
@@ -46,18 +82,17 @@ def main():
         # Initialize preprocessor
         preprocessor = DataPreprocessor(config)
         
-        # Preprocess features
+        # Preprocess data
         logger.info("Preprocessing features")
-        X = preprocessor.preprocess_features(df)
-        
-        # Prepare target variables
-        target_columns = config.data_config['target_columns']
-        y = df[target_columns].values
+        X, y, label_encoders = preprocess_data(df, config, preprocessor)
         
         # Initialize and train model
         logger.info("Training model")
         model = GradientBoostingModel(config.model_config)
         model.train(X, y, feature_names=X.columns.tolist())
+        
+        # Save label encoders along with the model
+        model.label_encoders = label_encoders
         
         # Evaluate model
         metrics = model.evaluate(X, y)

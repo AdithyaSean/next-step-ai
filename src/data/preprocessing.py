@@ -31,13 +31,12 @@ class DataPreprocessor:
         processed_df = df.copy()
         
         # Process numerical features
-        num_features = self.config.data_config['features']['academic']
+        num_features = self.config.data_config['features']['core_subjects']
         processed_df = self._process_numerical(processed_df, num_features)
         
         # Process categorical features
         cat_features = (
-            self.config.data_config['features']['interests'] +
-            self.config.data_config['features']['activities']
+            self.config.data_config['features'].get('additional', [])
         )
         processed_df = self._process_categorical(processed_df, cat_features)
         
@@ -45,7 +44,7 @@ class DataPreprocessor:
     
     def _process_numerical(self, df: pd.DataFrame, features: List[str]) -> pd.DataFrame:
         """Process numerical features using specified scaling method"""
-        strategy = self.config.preprocessing['numerical_features']['strategy']
+        strategy = self.config.preprocessing_config.get('numerical_features', {}).get('strategy', 'standard_scaler')
         
         if strategy == 'standard_scaler':
             scaler = StandardScaler()
@@ -56,7 +55,7 @@ class DataPreprocessor:
     
     def _process_categorical(self, df: pd.DataFrame, features: List[str]) -> pd.DataFrame:
         """Process categorical features using specified encoding method"""
-        strategy = self.config.preprocessing['categorical_features']['strategy']
+        strategy = self.config.preprocessing_config.get('categorical_features', {}).get('strategy', 'label_encoding')
         
         if strategy == 'label_encoding':
             for feature in features:
@@ -79,7 +78,7 @@ class DataPreprocessor:
     
     def process_text_features(self, texts: List[str]) -> np.ndarray:
         """Process text features using specified vectorization method"""
-        strategy = self.config.preprocessing['text_features']['strategy']
+        strategy = self.config.preprocessing_config.get('text_features', {}).get('strategy', 'tfidf')
         
         if strategy == 'tfidf':
             if 'text' not in self.vectorizers:

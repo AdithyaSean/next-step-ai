@@ -32,3 +32,8 @@ class Config:
     def training_config(self) -> Dict[str, Any]:
         """Get training configuration"""
         return self.config.get('training', {})
+    
+    @property
+    def preprocessing_config(self) -> Dict[str, Any]:
+        """Get preprocessing configuration"""
+        return self.config.get('preprocessing', {})

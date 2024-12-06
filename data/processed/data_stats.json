@@ -1,0 +1,60 @@
+{
+  "n_train_samples": 800,
+  "n_test_samples": 200,
+  "n_features": 23,
+  "feature_names": [
+    "ol_mathematics",
+    "ol_science",
+    "ol_english",
+    "ol_passed",
+    "al_attempted",
+    "al_stream",
+    "al_physics",
+    "al_chemistry",
+    "al_mathematics",
+    "al_zscore",
+    "al_passed",
+    "interests",
+    "skills",
+    "al_business studies",
+    "al_accounting",
+    "al_economics",
+    "al_biology",
+    "university_entrance",
+    "university_program",
+    "university_completed",
+    "university_gpa",
+    "education_path",
+    "career_path"
+  ],
+  "target_distribution": {
+    "career_path": {
+      "Technical Support": 222,
+      "Sales": 190,
+      "Administrative": 169,
+      "Consultant": 38,
+      "Teacher": 34,
+      "Business Analyst": 29,
+      "Accountant": 26,
+      "Software Engineer": 24,
+      "Manager": 19,
+      "Engineer": 18,
+      "Data Scientist": 15,
+      "Doctor": 12,
+      "Research Scientist": 4
+    },
+    "education_path": {
+      "Professional Certification": 293,
+      "Technical Training": 242,
+      "Arts and Humanities": 72,
+      "Incomplete Degree": 46,
+      "Management": 42,
+      "Business Administration": 32,
+      "Physical Science": 21,
+      "Computer Science": 20,
+      "Engineering": 16,
+      "Biological Science": 8,
+      "Medicine": 8
+    }
+  }
+}
