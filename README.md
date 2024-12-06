@@ -117,17 +117,51 @@ We use a Gradient Boosting model that:
 - Explains which factors influenced the prediction
 - Can be easily retrained with new data
 
-## Directory Structure
-```
-next-step-career-guidance/
-├── data/                 # Contains datasets and preprocessing scripts
-├── models/               # Trained models and configuration files
-├── notebooks/            # Jupyter notebooks for experiments
-├── src/                  # Core source code for training and evaluation
-├── tests/                # Unit tests for the project
-├── requirements.txt      # Python dependencies
-└── README.md             # Project documentation
-```
+## Project Structure
+
+Next Step AI/
+├── data/                          # Data storage
+│   ├── processed/                 # Processed datasets
+│   └── raw/                      # Raw data files
+│       └── sample_data.csv       # Generated sample data
+│
+├── docs/                         # Documentation
+│   └── model_comparison.md       # Model evaluation and comparison
+│
+├── notebooks/                    # Jupyter notebooks
+│   └── 00_quickstart_guide.ipynb # Getting started guide
+│
+├── scripts/                      # Utility scripts
+│   ├── evaluate_model.py         # Model evaluation
+│   ├── generate_sample_data.py   # Sample data generation
+│   ├── predict_cli.py           # CLI prediction interface
+│   ├── prepare_data.py          # Data preparation pipeline
+│   ├── train_model.py           # Model training
+│   └── tune_hyperparameters.py  # Hyperparameter optimization
+│
+├── src/                         # Source code
+│   ├── config/                  # Configuration
+│   │   ├── config.py           # Configuration management
+│   │   ├── config.yaml         # General configuration
+│   │   └── model_config.yaml   # Model-specific settings
+│   │
+│   ├── data/                    # Data processing
+│   │   └── preprocessing.py    # Data preprocessing utilities
+│   │
+│   ├── models/                  # Model implementations
+│   │   ├── base_model.py       # Abstract base class
+│   │   ├── al_stream_predictor.py    # A/L stream prediction (Stage 1)
+│   │   ├── university_predictor.py    # University program prediction (Stage 2)
+│   │   ├── career_path_predictor.py   # Career path prediction (Stage 3)
+│   │   ├── career_guidance_system.py  # Unified prediction interface
+│   │   └── preprocessing.py     # Model-specific preprocessing
+│   │
+│   └── utils/                   # Utilities
+│       └── logger.py           # Logging configuration
+│
+├── Makefile                     # Build automation
+├── README.md                    # Project documentation
+└── requirements.txt             # Python dependencies
 
 ## Roadmap
 - **Phase 1:** Explore available datasets and preprocess them.
