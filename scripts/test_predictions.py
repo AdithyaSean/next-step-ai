@@ -2,15 +2,23 @@ import pandas as pd
 import sys
 import os
 import yaml
+import json
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from src.models.career_guidance_model import CareerGuidanceModel
 from src.models.preprocessing import PreprocessingPipeline
 
-# Load configuration
+# Load configuration and data stats
 with open('src/config/config.yaml', 'r') as f:
     config = yaml.safe_load(f)
+    
+with open('data/processed/data_stats.json', 'r') as f:
+    data_stats = json.load(f)
+
+# Create path mappings
+career_paths = list(data_stats['target_distribution']['career_path'].keys())
+education_paths = list(data_stats['target_distribution']['education_path'].keys())
 
 # Load the sample data
 data_path = 'data/raw/sample_data.csv'
@@ -55,13 +63,22 @@ print(f"Education Path Prediction Accuracy: {education_accuracy:.2%}")
 print("\nExample Predictions:")
 for i in range(5):
     student = test_df.iloc[i]
-    pred = {
-        'career_path': career_predictions[i],
-        'education_path': education_predictions[i]
-    }
+    pred_career_idx = career_predictions[i]
+    pred_education_idx = education_predictions[i]
+    
     print(f"\nStudent {i+1}:")
     print(f"O/L Results: {dict(filter(lambda x: 'ol_' in x[0], student.items()))}")
     if 'al_stream' in student:
         print(f"A/L Stream: {student['al_stream']}")
-    print(f"Predicted Career Path: {pred['career_path']}")
-    print(f"Predicted Education Path: {pred['education_path']}")
+    print(f"Predicted Career Path: {pred_career_idx} ({career_paths[pred_career_idx]})")
+    print(f"Predicted Education Path: {pred_education_idx} ({education_paths[pred_education_idx]})")
+
+# Print path mappings for reference
+print("\nPath Number Mappings:")
+print("\nCareer Paths:")
+for idx, path in enumerate(career_paths):
+    print(f"{idx}: {path}")
+
+print("\nEducation Paths:")
+for idx, path in enumerate(education_paths):
+    print(f"{idx}: {path}")
