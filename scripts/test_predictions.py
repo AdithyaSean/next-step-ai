@@ -8,6 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from src.models.career_guidance_model import CareerGuidanceModel
 from src.models.preprocessing import PreprocessingPipeline
+from sklearn.metrics import accuracy_score
 
 # Load configuration and data stats
 with open('src/config/config.yaml', 'r') as f:
@@ -46,14 +47,12 @@ model.fit(X_train, y_train)
 
 # Make predictions on test set
 print("\nMaking predictions...")
-predictions = model.predict(X_test)
+career_predictions, education_predictions = model.predict(X_test)
+career_probas, education_probas = model.predict_proba(X_test)
 
 # Calculate accuracy
-from sklearn.metrics import accuracy_score
-career_predictions, education_predictions = predictions  # Unpack the tuple
-y_test_career, y_test_education = y_test  # Unpack the target tuple
-career_accuracy = accuracy_score(y_test_career, career_predictions)
-education_accuracy = accuracy_score(y_test_education, education_predictions)
+career_accuracy = accuracy_score(y_test[0], career_predictions)
+education_accuracy = accuracy_score(y_test[1], education_predictions)
 
 print("\nModel Performance:")
 print(f"Career Path Prediction Accuracy: {career_accuracy:.2%}")
@@ -63,22 +62,30 @@ print(f"Education Path Prediction Accuracy: {education_accuracy:.2%}")
 print("\nExample Predictions:")
 for i in range(5):
     student = test_df.iloc[i]
-    pred_career_idx = career_predictions[i]
-    pred_education_idx = education_predictions[i]
+    career_pred = career_predictions[i]
+    education_pred = education_predictions[i]
+    
+    # Get prediction probabilities
+    career_prob = career_probas[i][career_pred]
+    education_prob = education_probas[i][education_pred]
     
     print(f"\nStudent {i+1}:")
     print(f"O/L Results: {dict(filter(lambda x: 'ol_' in x[0], student.items()))}")
     if 'al_stream' in student:
         print(f"A/L Stream: {student['al_stream']}")
-    print(f"Predicted Career Path: {pred_career_idx} ({career_paths[pred_career_idx]})")
-    print(f"Predicted Education Path: {pred_education_idx} ({education_paths[pred_education_idx]})")
+    print(f"Predicted Career Path: {career_pred} ({career_paths[career_pred]}) - Confidence: {career_prob:.2%}")
+    print(f"Predicted Education Path: {education_pred} ({education_paths[education_pred]}) - Confidence: {education_prob:.2%}")
 
 # Print path mappings for reference
-print("\nPath Number Mappings:")
+print("\nPath Number Mappings with Success Rates:")
 print("\nCareer Paths:")
 for idx, path in enumerate(career_paths):
-    print(f"{idx}: {path}")
+    mask = career_predictions == idx
+    success_rate = accuracy_score(y_test[0][mask], career_predictions[mask]) if any(mask) else 0
+    print(f"{idx}: {path} - Success Rate: {success_rate:.2%}")
 
 print("\nEducation Paths:")
 for idx, path in enumerate(education_paths):
-    print(f"{idx}: {path}")
+    mask = education_predictions == idx
+    success_rate = accuracy_score(y_test[1][mask], education_predictions[mask]) if any(mask) else 0
+    print(f"{idx}: {path} - Success Rate: {success_rate:.2%}")
