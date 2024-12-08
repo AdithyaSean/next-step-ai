@@ -13,7 +13,6 @@
 - [x] FastAPI setup
 - [x] Basic endpoints
 - [x] Authentication system
-- [ ] Rate limiting
 - [ ] API documentation
 - [ ] Error handling
 - [ ] Logging system
