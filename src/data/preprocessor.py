@@ -53,12 +53,21 @@ class DataPreprocessor:
             processed['ol_total_passed'] = ol_results.get('total_subjects_passed', 0)
         
         # Process A/L results
-        if 'al_results' in data:
+        if 'al_results' in data and data['al_results'] is not None:
             al_results = data['al_results']
             processed['al_stream'] = al_results.get('stream', '')
-            for subj, grade in al_results.get('subjects', {}).items():
-                processed[f'al_{subj}'] = self._convert_grade_to_numeric(grade)
-            processed['al_zscore'] = float(al_results.get('zscore', 0))
+            if 'subjects' in al_results:
+                for subject, grade in al_results['subjects'].items():
+                    processed[f'al_{subject}'] = self._convert_grade_to_numeric(grade)
+            processed['al_zscore'] = al_results.get('zscore', 0.0)
+        else:
+            # Set default values for A/L features when not available
+            processed['al_stream'] = ''
+            processed['al_zscore'] = 0.0
+            # Add default values for common A/L subjects
+            for subject in ['combined_maths', 'physics', 'chemistry', 'biology', 
+                          'accounting', 'business_studies', 'economics']:
+                processed[f'al_{subject}'] = 0.0
         
         return processed
     

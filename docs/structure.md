@@ -49,25 +49,31 @@ next-step-ai/
 │   │
 │   ├── models/            # ML models
 │   │   ├── __init__.py
-│   │   └── career_predictor.py  # Career prediction model
+│   │   ├── career_predictor.py  # Career prediction model
+│   │   └── evaluator.py   # Model evaluation metrics
 │   │
 │   └── utils/             # Utility functions
-│       └── __init__.py
+│       ├── __init__.py
+│       ├── logger.py      # Logging utilities
+│       └── metrics.py     # Performance metrics
 │
-├── tests/                   # Test files
+├── tests/                   # Test suite
 │   ├── __init__.py
+│   ├── conftest.py         # Test configuration
 │   ├── data/              # Data processing tests
 │   │   ├── __init__.py
 │   │   ├── test_generator.py
-│   │   └── test_validator.py
-│   └── models/             # Model tests
-│       └── __init__.py
+│   │   └── test_preprocessor.py
+│   ├── models/            # Model tests
+│   │   ├── __init__.py
+│   │   ├── test_predictor.py
+│   └── api/               # API tests
+│       ├── __init__.py
+│       └── test_endpoints.py
 │
-├── .env.example            # Environment variables template
-├── .gitignore             # Git ignore file
-├── README.md              # Project overview
-├── requirements.txt       # Project dependencies
-└── setup.sh              # Environment setup script
+├── README.md               # Project overview
+├── requirements.txt        # Python dependencies
+└── setup.sh               # Setup script
 ```
 
 ## Recent Changes
@@ -132,26 +138,35 @@ API:
 ```
 
 ## Development Guidelines
-1. Follow modular design
-2. Validate all data transformations
-3. Document all components
-4. Write comprehensive tests
-5. Monitor model performance
+1. Follow PEP 8 style guide
+2. Write comprehensive tests
+3. Document all functions
+4. Use type hints
+5. Handle errors gracefully
 6. Keep code maintainable
 
 ## Data Generation Guidelines
 1. Follow Sri Lankan education patterns
 2. Use realistic distributions
-3. Maintain data relationships
-4. Validate against API models
-5. Generate reproducible datasets
+3. Ensure data privacy
+4. Generate diverse profiles
+5. Maintain data quality
 
 ## Model Development Guidelines
-1. Use LightGBM for efficiency
-2. Monitor feature importance
-3. Validate predictions
-4. Maintain interpretability
-5. Track performance metrics
+1. Ensure reproducibility
+2. Track experiments
+3. Version models
+4. Document parameters
+5. Validate thoroughly
+6. Provide explanations
+
+## API Development Guidelines
+1. Follow REST principles
+2. Version endpoints
+3. Validate inputs
+4. Handle errors
+5. Rate limit requests
+6. Document thoroughly
 
 ## Testing Strategy
 1. Unit tests for components

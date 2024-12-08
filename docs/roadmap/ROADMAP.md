@@ -9,7 +9,7 @@
 - [x] Data validation system
 - [x] Sample dataset creation
 
-### API Development
+### API Development 
 - [x] FastAPI setup
 - [x] Basic endpoints
 - [x] Authentication system

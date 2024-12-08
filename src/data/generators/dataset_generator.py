@@ -111,6 +111,58 @@ class StudentDataGenerator:
         
         return internships
     
+    def determine_career_path(self, ol_results: Dict, al_results: Optional[Dict], skills: Dict[str, float]) -> str:
+        """Determine the most suitable career path based on academic performance and skills."""
+        career_scores = {}
+        
+        for career, requirements in config.CAREER_PATHS.items():
+            score = 0.0
+            
+            # Check O/L requirements
+            if career == 'Software Engineer' and ol_results['mathematics'] >= requirements['min_ol_maths']:
+                score += 0.3
+            elif career == 'Doctor' and ol_results['science'] >= requirements['min_ol_science']:
+                score += 0.3
+            elif career == 'Business Analyst' and ol_results['mathematics'] >= requirements['min_ol_maths']:
+                score += 0.3
+            
+            # Check A/L stream and results if available
+            if al_results is not None:
+                if career == 'Software Engineer':
+                    if (al_results['stream'] == 'PHYSICAL_SCIENCE' and 
+                        'combined_maths' in al_results['subjects'] and 
+                        al_results['subjects']['combined_maths'] >= requirements['min_al_maths']):
+                        score += 0.4
+                elif career == 'Doctor':
+                    if (al_results['stream'] == 'BIOLOGICAL_SCIENCE' and 
+                        'biology' in al_results['subjects'] and 
+                        al_results['subjects']['biology'] >= requirements['min_al_biology']):
+                        score += 0.4
+                elif career == 'Business Analyst':
+                    if (al_results['stream'] == 'COMMERCE' and 
+                        'accounting' in al_results['subjects'] and 
+                        al_results['subjects']['accounting'] >= requirements['min_al_accounting']):
+                        score += 0.4
+            else:
+                # For O/L only students, give partial credit for being in the right academic track
+                if career == 'Software Engineer' and ol_results['mathematics'] >= 75:
+                    score += 0.2
+                elif career == 'Doctor' and ol_results['science'] >= 85:
+                    score += 0.2
+                elif career == 'Business Analyst' and ol_results['mathematics'] >= 70:
+                    score += 0.2
+            
+            # Check skills match
+            required_skills = requirements['required_skills']
+            matching_skills = sum(1 for skill in required_skills if skill in skills and skills[skill] >= 3.5)
+            score += (matching_skills / len(required_skills)) * 0.3
+            
+            career_scores[career] = score
+        
+        # Return career with highest score, defaulting to most general if no strong matches
+        best_career = max(career_scores.items(), key=lambda x: x[1])
+        return best_career[0] if best_career[1] >= 0.5 else 'General Studies'
+    
     def generate_career_preferences(self) -> Dict:
         """Generate career preferences."""
         # Select random roles and sectors
@@ -171,7 +223,8 @@ class StudentDataGenerator:
             'ol_results': self.generate_ol_results(),
             'skills_assessment': self.generate_skills_assessment(),
             'interests': random.sample(list(config.INTEREST_AREAS.keys()), 3),
-            'constraints': self.generate_constraints()
+            'constraints': self.generate_constraints(),
+            'al_results': None  # Initialize as None by default
         }
         
         # Add A/L results if applicable
@@ -186,6 +239,13 @@ class StudentDataGenerator:
             if education_level in ['UNDERGRADUATE', 'GRADUATE']:
                 profile['university_data'] = self.generate_university_data(stream)
                 profile['career_preferences'] = self.generate_career_preferences()
+        
+        # Determine career path
+        profile['career_path'] = self.determine_career_path(
+            profile['ol_results'],
+            profile['al_results'],
+            profile['skills_assessment']
+        )
         
         return profile
     
