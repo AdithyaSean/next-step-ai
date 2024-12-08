@@ -4,8 +4,9 @@
 ```
 next-step-ai/
 ├── data/                      # Data storage and processing
-│   ├── raw/                  # Raw, immutable data
-│   └── processed/            # Cleaned and processed data
+│   ├── raw/                  # Raw generated datasets
+│   ├── processed/            # Cleaned and processed data
+│   └── samples/             # Sample data for testing
 │
 ├── docs/                     # Documentation
 │   ├── roadmap/             # Project roadmap and milestones
@@ -15,6 +16,9 @@ next-step-ai/
 │
 ├── models/                   # Trained models
 │   └── saved/               # Saved model files
+│
+├── scripts/                  # Utility scripts
+│   └── generate_dataset.py  # Dataset generation script
 │
 ├── src/                     # Source code
 │   ├── api/                # API implementation
@@ -28,8 +32,13 @@ next-step-ai/
 │   │
 │   ├── data/              # Data processing
 │   │   ├── __init__.py
+│   │   ├── generators/    # Data generation
+│   │   │   ├── __init__.py
+│   │   │   ├── config.py  # Generation configuration
+│   │   │   └── dataset_generator.py
 │   │   ├── preprocessor.py # Data preprocessing
-│   │   └── validator.py   # Data validation
+│   │   ├── validator.py   # Data validation
+│   │   └── compatibility_check.py  # API compatibility checker
 │   │
 │   ├── models/            # ML models
 │   │   ├── __init__.py
@@ -40,6 +49,10 @@ next-step-ai/
 │
 ├── tests/                   # Test files
 │   ├── __init__.py
+│   ├── data/              # Data processing tests
+│   │   ├── __init__.py
+│   │   ├── test_generator.py
+│   │   └── test_validator.py
 │   └── models/             # Model tests
 │       └── __init__.py
 │
@@ -51,23 +64,26 @@ next-step-ai/
 ```
 
 ## Recent Changes
+- [2024-12-08] Added Data Generation System
+  - Created dataset generator with Sri Lankan education patterns
+  - Added configuration for realistic distributions
+  - Implemented compatibility checker with API models
+  - Added sample data generation script
+
 - [2024-12-08] Added FastAPI Implementation
   - Created complete API structure
   - Added authentication system
   - Implemented data validation
   - Added database operations
-  - Created API documentation
-
-- [2024-12-08] Updated Data Schema
-  - Added university-level data points
-  - Enhanced career preferences
-  - Added technical competencies
-  - Improved validation rules
 
 ## Key Components
 
+### Data Generation (`src/data/generators/`)
+- `config.py`: Configuration for realistic data generation
+- `dataset_generator.py`: Main data generation logic
+- `compatibility_check.py`: API compatibility verification
+
 ### API Layer (`src/api/`)
-- `main.py`: FastAPI application setup
 - `models.py`: Pydantic models for request/response
 - `routes.py`: API endpoints implementation
 - `auth.py`: JWT authentication
@@ -80,10 +96,10 @@ next-step-ai/
 ### ML Models (`src/models/`)
 - `career_predictor.py`: Career prediction implementation
 
-### Documentation (`docs/`)
-- `data_schema.md`: Comprehensive data schema
-- `structure.md`: Project structure (this file)
-- `roadmap/ROADMAP.md`: Development roadmap
+## Data Flow
+1. Data Generation → Validation → Storage
+2. API Request → Validation → Processing → Response
+3. Model Training → Evaluation → Deployment
 
 ## Dependencies
 Current dependencies:
@@ -105,39 +121,17 @@ API:
 - python-dotenv>=1.0.0
 ```
 
-## API Endpoints
+## Generated Data Structure
+1. Student Profiles (JSON/CSV)
+   - Academic records
+   - Skills assessment
+   - Career preferences
+   - Constraints
 
-### Authentication
-- POST /api/v1/token
-- POST /api/v1/users/
-- GET /api/v1/users/me/
-
-### Profile Management
-- POST /api/v1/profile/
-- GET /api/v1/profile/
-
-### Career Guidance
-- POST /api/v1/guidance/
-- GET /api/v1/paths/
-- GET /api/v1/skills/
-
-### System
-- GET /api/v1/health
-- GET /
-
-## Database Schema
-- Users
-- Student Profiles
-- Academic Records
-- Career Preferences
-- Guidance History
-
-## Future Additions
-- API tests
-- Database migrations
-- Monitoring system
-- Mobile optimization
-- Flutter integration
+2. Sample Data
+   - Test cases
+   - Validation examples
+   - API compatibility checks
 
 ## Development Guidelines
 1. Follow FastAPI best practices
@@ -147,6 +141,20 @@ API:
 5. Write tests for new features
 6. Keep dependencies minimal
 7. Maintain security best practices
+
+## Data Generation Guidelines
+1. Follow Sri Lankan education patterns
+2. Use realistic distributions
+3. Maintain data relationships
+4. Validate against API models
+5. Generate reproducible datasets
+
+## Testing Strategy
+1. Unit tests for generators
+2. Validation tests for API models
+3. Integration tests for data flow
+4. Performance tests for model
+5. API endpoint tests
 
 ## Security Measures
 1. JWT authentication
@@ -162,3 +170,4 @@ API:
 - Update documentation when making changes
 - Follow API versioning
 - Maintain test coverage
+- Validate generated data
