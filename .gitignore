@@ -1,8 +1,3 @@
-# Virtual Environment
-venv/
-env/
-.env/
-
 # Python
 __pycache__/
 *.py[cod]
@@ -25,44 +20,110 @@ wheels/
 .installed.cfg
 *.egg
 
-# IDEs and editors
+# Virtual Environment
+venv/
+env/
+ENV/
+.env
+.venv
+
+# IDE
 .idea/
 .vscode/
 *.swp
 *.swo
 .DS_Store
+*.sublime-workspace
+*.sublime-project
 
-# Jupyter Notebook
-.ipynb_checkpoints
+# Project specific
+data/raw/*
+data/processed/*
+data/models/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/models/.gitkeep
 
-# TensorFlow
-*.h5
-*.pb
-*.tflite
-saved_model/
-
-# Logs and databases
-*.log
-*.sqlite
+# Logs
 logs/
-*.db
-
-# Environment variables
-.env
-.env.local
-.env.*.local
-
-# Model checkpoints and data
-checkpoints/
-data/raw/
-data/processed/
-models/saved/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Testing
 .coverage
 htmlcov/
-.pytest_cache/
 .tox/
+.nox/
+.pytest_cache/
 nosetests.xml
 coverage.xml
 *.cover
+.hypothesis/
+
+# Mobile Development
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Flutter/Dart specific
+**/doc/api/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+ios/Flutter/.last_build_id
+
+# API Keys and Secrets
+*.pem
+*.key
+*.cert
+.env.*
+credentials.json
+service-account.json
+
+# Database
+*.sqlite
+*.db
+*.rdb
+
+# Model files
+*.h5
+*.pkl
+*.joblib
+*.pt
+*.pth
+*.onnx
+*.tflite
+model_weights/
+
+# Generated documentation
+docs/_build/
+site/
+
+# Temporary files
+*.swp
+*.swo
+*~
+.temp/
+.tmp/
+tmp/
+
+# System Files
+.DS_Store
+Thumbs.db
