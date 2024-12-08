@@ -21,14 +21,14 @@ class StudentDataGenerator:
         results = {}
         for subject, (mean, std) in config.GRADE_DISTRIBUTIONS['OL'].items():
             grade = self.rng.normal(mean, std)
-            results[subject] = min(max(round(grade, 2), 0), 100)
+            results[subject] = float(min(max(round(grade, 2), 0), 100))
         
-        results['total_subjects_passed'] = sum(1 for grade in results.values() if grade >= 35)
-        results['core_subjects_average'] = np.mean([
+        results['total_subjects_passed'] = int(sum(1 for grade in results.values() if grade >= 35))
+        results['core_subjects_average'] = float(np.mean([
             results['mathematics'],
             results['science'],
             results['english']
-        ])
+        ]))
         return results
     
     def generate_al_results(self, stream: str) -> Dict:
@@ -37,18 +37,18 @@ class StudentDataGenerator:
         
         for subject, (mean, std) in config.GRADE_DISTRIBUTIONS['AL'][stream].items():
             grade = self.rng.normal(mean, std)
-            results['subjects'][subject] = min(max(round(grade, 2), 0), 100)
+            results['subjects'][subject] = float(min(max(round(grade, 2), 0), 100))
         
         # Generate realistic z-score
-        results['zscore'] = round(self.rng.normal(1.2, 0.6), 2)
+        results['zscore'] = float(round(self.rng.normal(1.2, 0.6), 2))
         return results
     
-    def generate_skills_assessment(self) -> Dict[str, int]:
+    def generate_skills_assessment(self) -> Dict[str, float]:
         """Generate skill ratings."""
         skills = {}
         for skill, (mean, std) in config.SKILL_DISTRIBUTIONS.items():
             rating = round(self.rng.normal(mean, std))
-            skills[skill] = min(max(rating, 1), 5)
+            skills[skill] = float(min(max(rating, 1), 5))
         return skills
     
     def generate_university_data(self, stream: str) -> Dict:
@@ -60,26 +60,26 @@ class StudentDataGenerator:
             config.GPA_DISTRIBUTION['mean'],
             config.GPA_DISTRIBUTION['std']
         )
-        gpa = min(max(round(gpa, 2), 
+        gpa = float(min(max(round(gpa, 2), 
                      config.GPA_DISTRIBUTION['min']),
-                 config.GPA_DISTRIBUTION['max'])
+                 config.GPA_DISTRIBUTION['max']))
         
         # Generate technical skills
         tech_skills = {}
         if field in config.TECHNICAL_SKILLS:
             for skill, (mean, std) in config.TECHNICAL_SKILLS[field].items():
                 rating = round(self.rng.normal(mean, std))
-                tech_skills[skill] = min(max(rating, 1), 5)
+                tech_skills[skill] = float(min(max(rating, 1), 5))
         
         # Generate projects
         num_projects = self.rng.integers(1, 4)
         projects = []
         for _ in range(num_projects):
             proj_type = random.choice(list(config.PROJECT_TYPES.keys()))
-            duration = self.rng.integers(
+            duration = int(self.rng.integers(
                 config.PROJECT_TYPES[proj_type]['min_duration'],
                 config.PROJECT_TYPES[proj_type]['max_duration']
-            )
+            ))
             projects.append({
                 'type': proj_type,
                 'domain': field,
@@ -88,7 +88,7 @@ class StudentDataGenerator:
         
         return {
             'degree_type': 'Bachelors',
-            'current_year': self.rng.integers(1, 5),
+            'current_year': int(self.rng.integers(1, 5)),
             'field_of_study': field,
             'specialization': random.choice(config.UNIVERSITY_FIELDS[stream]),
             'current_gpa': gpa,
@@ -99,13 +99,13 @@ class StudentDataGenerator:
     
     def _generate_internships(self, field: str) -> List[Dict]:
         """Generate internship experiences."""
-        num_internships = self.rng.integers(0, 3)
+        num_internships = int(self.rng.integers(0, 3))
         internships = []
         
         for _ in range(num_internships):
             internships.append({
                 'field': field,
-                'duration_months': self.rng.integers(1, 7),
+                'duration_months': int(self.rng.integers(1, 7)),
                 'role_type': random.choice(['Technical', 'Research', 'Management'])
             })
         
@@ -124,14 +124,14 @@ class StudentDataGenerator:
             'preferred_roles': preferred_roles,
             'preferred_sectors': preferred_sectors,
             'work_preferences': {
-                'research_oriented': random.choice([True, False]),
-                'industry_oriented': random.choice([True, False]),
-                'entrepreneurship_interest': random.choice([True, False])
+                'research_oriented': int(random.choice([1, 0])),
+                'industry_oriented': int(random.choice([1, 0])),
+                'entrepreneurship_interest': int(random.choice([1, 0]))
             },
             'career_goals': {
-                'further_studies': random.choice([True, False]),
-                'industry_experience': random.choice([True, False]),
-                'startup_plans': random.choice([True, False])
+                'further_studies': int(random.choice([1, 0])),
+                'industry_experience': int(random.choice([1, 0])),
+                'startup_plans': int(random.choice([1, 0]))
             }
         }
     
@@ -142,16 +142,16 @@ class StudentDataGenerator:
                 list(config.DISTRICTS.keys()),
                 p=list(config.DISTRICTS.values())
             ),
-            'financial_constraints': np.random.choice(
-                [True, False],
+            'financial_constraints': int(np.random.choice(
+                [1, 0],
                 p=[config.FINANCIAL_CONSTRAINTS[True], 
                    config.FINANCIAL_CONSTRAINTS[False]]
-            ),
-            'willing_to_relocate': np.random.choice(
-                [True, False],
+            )),
+            'willing_to_relocate': int(np.random.choice(
+                [1, 0],
                 p=[config.RELOCATION_WILLINGNESS[True],
                    config.RELOCATION_WILLINGNESS[False]]
-            )
+            ))
         }
     
     def generate_student(self) -> Dict:
