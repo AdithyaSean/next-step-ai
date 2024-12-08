@@ -111,67 +111,94 @@ TECHNICAL_SKILLS = {
     }
 }
 
-# Interest Areas with Weights
-INTEREST_AREAS = {
-    'Technology': 0.2,
-    'Healthcare': 0.15,
-    'Business': 0.2,
-    'Engineering': 0.15,
-    'Education': 0.1,
-    'Science': 0.1,
-    'Arts': 0.05,
-    'Law': 0.05
-}
-
-# Career Paths with Required Skills
+# Career Paths with Requirements
 CAREER_PATHS = {
     'Software Engineer': {
-        'required_skills': ['programming', 'problem_solving', 'analytical_thinking'],
-        'preferred_streams': ['PHYSICAL_SCIENCE'],
-        'min_ol_maths': 65,
-        'min_al_maths': 70
+        'min_ol_maths': 70,
+        'min_al_maths': 75,
+        'required_skills': ['analytical_thinking', 'problem_solving']
     },
     'Doctor': {
-        'required_skills': ['analytical_thinking', 'communication', 'clinical_skills'],
-        'preferred_streams': ['BIOLOGICAL_SCIENCE'],
         'min_ol_science': 75,
-        'min_al_biology': 75
+        'min_al_biology': 80,
+        'required_skills': ['analytical_thinking', 'communication']
     },
     'Business Analyst': {
-        'required_skills': ['analytical_thinking', 'communication', 'business_knowledge'],
-        'preferred_streams': ['COMMERCE'],
-        'min_ol_maths': 60,
-        'min_al_accounting': 70
+        'min_ol_maths': 65,
+        'min_al_accounting': 70,
+        'required_skills': ['analytical_thinking', 'communication']
+    },
+    'Data Scientist': {
+        'min_ol_maths': 75,
+        'min_al_maths': 80,
+        'required_skills': ['analytical_thinking', 'problem_solving']
+    },
+    'Biomedical Engineer': {
+        'min_ol_science': 70,
+        'min_al_biology': 75,
+        'required_skills': ['problem_solving', 'creativity']
+    },
+    'Financial Analyst': {
+        'min_ol_maths': 70,
+        'min_al_accounting': 75,
+        'required_skills': ['analytical_thinking', 'problem_solving']
+    },
+    'Research Scientist': {
+        'min_ol_science': 80,
+        'min_al_chemistry': 80,
+        'required_skills': ['analytical_thinking', 'creativity']
+    },
+    'Teacher': {
+        'min_ol_english': 70,
+        'min_al_subject1': 75,
+        'required_skills': ['communication', 'creativity']
+    },
+    'Marketing Manager': {
+        'min_ol_english': 75,
+        'min_al_business': 70,
+        'required_skills': ['communication', 'creativity']
+    },
+    'Civil Engineer': {
+        'min_ol_maths': 70,
+        'min_al_maths': 75,
+        'required_skills': ['problem_solving', 'analytical_thinking']
     }
 }
 
-# Project Types with Durations
-PROJECT_TYPES = {
-    'Research': {'min_duration': 3, 'max_duration': 12},
-    'Development': {'min_duration': 2, 'max_duration': 6},
-    'Analysis': {'min_duration': 1, 'max_duration': 4}
+# Interest Areas
+INTEREST_AREAS = {
+    'Technology': 0.25,
+    'Healthcare': 0.2,
+    'Business': 0.2,
+    'Education': 0.15,
+    'Research': 0.1,
+    'Engineering': 0.1
 }
 
-# Location Distribution
+# Work Environment Preferences
+WORK_ENVIRONMENTS = {
+    'Office': 0.4,
+    'Remote': 0.2,
+    'Field': 0.15,
+    'Hospital': 0.15,
+    'Laboratory': 0.1
+}
+
+# Districts with Population Distribution
 DISTRICTS = {
-    'Colombo': 0.25,
-    'Gampaha': 0.15,
-    'Kandy': 0.12,
-    'Galle': 0.08,
-    'Kurunegala': 0.07,
-    'Other': 0.33
+    'Colombo': 0.3,
+    'Gampaha': 0.2,
+    'Kandy': 0.15,
+    'Galle': 0.1,
+    'Kurunegala': 0.1,
+    'Jaffna': 0.08,
+    'Batticaloa': 0.07
 }
 
 # Financial Constraints Distribution
 FINANCIAL_CONSTRAINTS = {
     True: 0.4,  # 40% have financial constraints
-    False: 0.6
-}
-
-# Relocation Willingness
-RELOCATION_WILLINGNESS = {
-    True: 0.7,  # 70% willing to relocate
-    False: 0.3
+    False: 0.6  # 60% don't have financial constraints
 }
 
 # GPA Distribution
@@ -180,4 +207,30 @@ GPA_DISTRIBUTION = {
     'std': 0.4,
     'min': 2.0,
     'max': 4.0
+}
+
+# Project Types with Duration Ranges (in months)
+PROJECT_TYPES = {
+    'Research': {
+        'min_duration': 3,
+        'max_duration': 12
+    },
+    'Development': {
+        'min_duration': 2,
+        'max_duration': 6
+    },
+    'Analysis': {
+        'min_duration': 1,
+        'max_duration': 4
+    },
+    'Design': {
+        'min_duration': 2,
+        'max_duration': 8
+    }
+}
+
+# Relocation Willingness
+RELOCATION_WILLINGNESS = {
+    True: 0.7,  # 70% willing to relocate
+    False: 0.3
 }

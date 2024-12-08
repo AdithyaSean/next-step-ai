@@ -119,49 +119,84 @@ class StudentDataGenerator:
             score = 0.0
             
             # Check O/L requirements
-            if career == 'Software Engineer' and ol_results['mathematics'] >= requirements['min_ol_maths']:
-                score += 0.3
-            elif career == 'Doctor' and ol_results['science'] >= requirements['min_ol_science']:
-                score += 0.3
-            elif career == 'Business Analyst' and ol_results['mathematics'] >= requirements['min_ol_maths']:
-                score += 0.3
+            ol_subjects = {
+                'mathematics': 'min_ol_maths',
+                'science': 'min_ol_science',
+                'english': 'min_ol_english'
+            }
+            
+            for subject, req_key in ol_subjects.items():
+                if req_key in requirements and ol_results[subject] >= requirements[req_key]:
+                    score += 0.3
             
             # Check A/L stream and results if available
             if al_results is not None:
-                if career == 'Software Engineer':
-                    if (al_results['stream'] == 'PHYSICAL_SCIENCE' and 
-                        'combined_maths' in al_results['subjects'] and 
-                        al_results['subjects']['combined_maths'] >= requirements['min_al_maths']):
-                        score += 0.4
-                elif career == 'Doctor':
-                    if (al_results['stream'] == 'BIOLOGICAL_SCIENCE' and 
-                        'biology' in al_results['subjects'] and 
-                        al_results['subjects']['biology'] >= requirements['min_al_biology']):
-                        score += 0.4
-                elif career == 'Business Analyst':
-                    if (al_results['stream'] == 'COMMERCE' and 
-                        'accounting' in al_results['subjects'] and 
-                        al_results['subjects']['accounting'] >= requirements['min_al_accounting']):
-                        score += 0.4
+                al_subjects = {
+                    'PHYSICAL_SCIENCE': {
+                        'combined_maths': 'min_al_maths',
+                        'physics': 'min_al_physics',
+                        'chemistry': 'min_al_chemistry'
+                    },
+                    'BIOLOGICAL_SCIENCE': {
+                        'biology': 'min_al_biology',
+                        'chemistry': 'min_al_chemistry',
+                        'physics': 'min_al_physics'
+                    },
+                    'COMMERCE': {
+                        'business_studies': 'min_al_business',
+                        'accounting': 'min_al_accounting',
+                        'economics': 'min_al_economics'
+                    },
+                    'ARTS': {
+                        'subject1': 'min_al_subject1',
+                        'subject2': 'min_al_subject2',
+                        'subject3': 'min_al_subject3'
+                    }
+                }
+                
+                stream = al_results['stream']
+                if stream in al_subjects:
+                    for subject, req_key in al_subjects[stream].items():
+                        if (req_key in requirements and 
+                            subject in al_results['subjects'] and 
+                            al_results['subjects'][subject] >= requirements[req_key]):
+                            score += 0.4
             else:
                 # For O/L only students, give partial credit for being in the right academic track
-                if career == 'Software Engineer' and ol_results['mathematics'] >= 75:
+                if ('min_ol_maths' in requirements and 
+                    ol_results['mathematics'] >= requirements['min_ol_maths'] + 5):
                     score += 0.2
-                elif career == 'Doctor' and ol_results['science'] >= 85:
+                elif ('min_ol_science' in requirements and 
+                      ol_results['science'] >= requirements['min_ol_science'] + 5):
                     score += 0.2
-                elif career == 'Business Analyst' and ol_results['mathematics'] >= 70:
+                elif ('min_ol_english' in requirements and 
+                      ol_results['english'] >= requirements['min_ol_english'] + 5):
                     score += 0.2
             
             # Check skills match
             required_skills = requirements['required_skills']
-            matching_skills = sum(1 for skill in required_skills if skill in skills and skills[skill] >= 3.5)
+            matching_skills = sum(1 for skill in required_skills 
+                                if skill in skills and skills[skill] >= 3.5)
             score += (matching_skills / len(required_skills)) * 0.3
+            
+            # Add significant randomness to ensure diversity (±15%)
+            score *= (1 + self.rng.uniform(-0.15, 0.15))
             
             career_scores[career] = score
         
-        # Return career with highest score, defaulting to most general if no strong matches
-        best_career = max(career_scores.items(), key=lambda x: x[1])
-        return best_career[0] if best_career[1] >= 0.5 else 'General Studies'
+        # Get top 3 careers by score
+        top_careers = sorted(career_scores.items(), key=lambda x: x[1], reverse=True)[:3]
+        
+        # If any careers have a good score, randomly select from top 3
+        good_careers = [(career, score) for career, score in top_careers if score >= 0.5]
+        if good_careers:
+            # Weight selection by scores
+            careers, scores = zip(*good_careers)
+            total_score = sum(scores)
+            probabilities = [score/total_score for score in scores]
+            return str(np.random.choice(careers, p=probabilities))
+        
+        return 'General Studies'
     
     def generate_career_preferences(self) -> Dict:
         """Generate career preferences."""

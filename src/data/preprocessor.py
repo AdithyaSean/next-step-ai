@@ -22,21 +22,19 @@ class DataPreprocessor:
         self.field_encoder = LabelEncoder()
         self.interest_encoder = LabelEncoder()
         self.career_encoder = LabelEncoder()
+        self.environment_encoder = LabelEncoder()  # Added encoder for work environment
         
-        # Mapping dictionaries
-        self.grade_mapping = {
-            'A': 75, 'B': 65, 'C': 55, 'S': 85,
-            'F': 35, 'W': 0
-        }
-        
-        # Track fitted state
+        # Track fitted state and feature names
         self.is_fitted = False
+        self.feature_names: Optional[List[str]] = None
     
     def _convert_grade_to_numeric(self, grade: str) -> float:
         """Convert letter grades to numeric values."""
         if isinstance(grade, (int, float)):
             return float(grade)
-        return self.grade_mapping.get(grade.upper(), 0.0)
+        if isinstance(grade, dict):
+            return float(grade.get('grade', 0.0))
+        return 0.0
     
     def _process_academic_records(self, data: Dict) -> Dict:
         """Process academic records including O/L and A/L results."""
@@ -45,29 +43,26 @@ class DataPreprocessor:
         # Process O/L results
         if 'ol_results' in data:
             ol_results = data['ol_results']
-            processed.update({
-                f'ol_{k}': self._convert_grade_to_numeric(v)
-                for k, v in ol_results.items()
-                if k != 'total_subjects_passed'
-            })
+            for subject, grade in ol_results.items():
+                if subject != 'total_subjects_passed':
+                    processed[f'ol_{subject}'] = self._convert_grade_to_numeric(grade)
             processed['ol_total_passed'] = ol_results.get('total_subjects_passed', 0)
         
         # Process A/L results
-        if 'al_results' in data and data['al_results'] is not None:
+        if 'al_results' in data and data['al_results']:
             al_results = data['al_results']
             processed['al_stream'] = al_results.get('stream', '')
+            
+            # Process subject grades
             if 'subjects' in al_results:
                 for subject, grade in al_results['subjects'].items():
                     processed[f'al_{subject}'] = self._convert_grade_to_numeric(grade)
-            processed['al_zscore'] = al_results.get('zscore', 0.0)
+            
+            # Add z-score if available
+            processed['al_zscore'] = float(al_results.get('zscore', 0.0))
         else:
-            # Set default values for A/L features when not available
             processed['al_stream'] = ''
             processed['al_zscore'] = 0.0
-            # Add default values for common A/L subjects
-            for subject in ['combined_maths', 'physics', 'chemistry', 'biology', 
-                          'accounting', 'business_studies', 'economics']:
-                processed[f'al_{subject}'] = 0.0
         
         return processed
     
@@ -75,22 +70,13 @@ class DataPreprocessor:
         """Process university-related data."""
         processed = {}
         
-        if 'university_data' in data:
-            uni_data = data['university_data']
+        if 'university_preferences' in data:
+            uni_prefs = data['university_preferences']
             processed.update({
-                'degree_field': uni_data.get('field_of_study', ''),
-                'degree_year': uni_data.get('current_year', 0),
-                'current_gpa': float(uni_data.get('current_gpa', 0)),
+                'degree_field': uni_prefs.get('field', ''),
+                'preferred_location': uni_prefs.get('location', ''),
+                'max_cost': uni_prefs.get('max_cost', 0)
             })
-            
-            # Process technical skills
-            tech_skills = uni_data.get('technical_competencies', {})
-            for skill, level in tech_skills.items():
-                processed[f'skill_{skill}'] = float(level)
-            
-            # Process projects and internships
-            processed['num_projects'] = len(uni_data.get('significant_projects', []))
-            processed['num_internships'] = len(uni_data.get('internships', []))
         
         return processed
     
@@ -100,27 +86,18 @@ class DataPreprocessor:
         
         if 'career_preferences' in data:
             prefs = data['career_preferences']
-            processed['preferred_roles'] = prefs.get('preferred_roles', [])
-            processed['preferred_sectors'] = prefs.get('preferred_sectors', [])
-            
-            # Work preferences
-            work_prefs = prefs.get('work_preferences', {})
-            for k, v in work_prefs.items():
-                processed[f'pref_{k}'] = int(v)
-            
-            # Career goals
-            goals = prefs.get('career_goals', {})
-            for k, v in goals.items():
-                processed[f'goal_{k}'] = int(v)
-        
-        # Process constraints
-        if 'constraints' in data:
-            constraints = data['constraints']
             processed.update({
-                'location': constraints.get('preferred_location', ''),
-                'has_financial_constraints': int(constraints.get('financial_constraints', False)),
-                'can_relocate': int(constraints.get('willing_to_relocate', True))
+                'min_salary': prefs.get('min_salary', 0),
+                'work_environment': prefs.get('work_environment', '')
             })
+        
+        # Get career path directly from profile (target variable)
+        processed['career_path'] = data.get('career_path', 'General Studies')
+        
+        # Process skills
+        if 'skills_assessment' in data:  
+            for skill, level in data['skills_assessment'].items():
+                processed[f'skill_{skill}'] = level
         
         return processed
     
@@ -135,28 +112,37 @@ class DataPreprocessor:
         
         return processed
     
-    def fit(self, data: List[Dict]):
+    def fit(self, data: List[Dict]) -> 'DataPreprocessor':
         """Fit preprocessor on training data."""
-        # Convert to DataFrame for easier processing
+        # Preprocess all profiles
         processed_data = [self.preprocess_single(profile) for profile in data]
         df = pd.DataFrame(processed_data)
         
-        # Fit grade scalers
-        grade_cols = [col for col in df.columns if col.startswith(('ol_', 'al_')) 
+        # Store feature names
+        self.feature_names = [col for col in df.columns if col != 'career_path']
+        
+        # Fit grade scaler
+        grade_cols = [col for col in df.columns if col.startswith(('ol_', 'al_'))
                      and col not in ['ol_total_passed', 'al_stream']]
         if grade_cols:
             self.grade_scaler.fit(df[grade_cols].fillna(0))
         
         # Fit categorical encoders
-        if 'al_stream' in df:
+        if 'al_stream' in df.columns:
             self.stream_encoder.fit(df['al_stream'].fillna(''))
-        if 'degree_field' in df:
+        if 'degree_field' in df.columns:
             self.field_encoder.fit(df['degree_field'].fillna(''))
+        if 'work_environment' in df.columns:  
+            self.environment_encoder.fit(df['work_environment'].fillna(''))
         
         # Fit skill scaler
         skill_cols = [col for col in df.columns if col.startswith('skill_')]
         if skill_cols:
             self.skill_scaler.fit(df[skill_cols].fillna(0))
+            
+        # Fit career path encoder
+        if 'career_path' in df.columns:
+            self.career_encoder.fit(df['career_path'].fillna(''))
         
         self.is_fitted = True
         return self
@@ -177,21 +163,63 @@ class DataPreprocessor:
             df[grade_cols] = self.grade_scaler.transform(df[grade_cols].fillna(0))
         
         # Transform categorical features
-        if 'al_stream' in df:
+        if 'al_stream' in df.columns:
             df['al_stream'] = self.stream_encoder.transform(df['al_stream'].fillna(''))
-        if 'degree_field' in df:
+        if 'degree_field' in df.columns:
             df['degree_field'] = self.field_encoder.transform(df['degree_field'].fillna(''))
+        if 'work_environment' in df.columns:  
+            df['work_environment'] = self.environment_encoder.transform(df['work_environment'].fillna(''))
         
         # Transform skills
         skill_cols = [col for col in df.columns if col.startswith('skill_')]
         if skill_cols:
             df[skill_cols] = self.skill_scaler.transform(df[skill_cols].fillna(0))
         
+        # Handle target variable if present
+        if 'career_path' in df.columns:
+            df['career_path'] = self.career_encoder.transform(df['career_path'].fillna(''))
+        
         return df
     
     def fit_transform(self, data: List[Dict]) -> pd.DataFrame:
         """Fit preprocessor and transform data."""
         return self.fit(data).transform(data)
+    
+    def transform_with_target(self, data: List[Dict]) -> Tuple[pd.DataFrame, Optional[pd.Series]]:
+        """Transform data and return features and target separately.
+        
+        This is a convenience method that returns both features and target variable
+        separately, useful for model training scenarios.
+        
+        Returns:
+            Tuple of (features DataFrame, target Series if available)
+        """
+        df = self.transform(data)
+        
+        # Extract target if present
+        target = None
+        if 'career_path' in df.columns:
+            target = df['career_path']
+            df = df.drop('career_path', axis=1)
+            
+        return df, target
+
+    def get_feature_names(self) -> List[str]:
+        """Get list of feature names after transformation.
+        
+        This is useful for model interpretation and feature importance analysis.
+        Must be called after fitting the preprocessor.
+        
+        Returns:
+            List of feature names
+        """
+        if not self.is_fitted:
+            raise ValueError("Preprocessor must be fitted before getting feature names")
+            
+        if self.feature_names is None:
+            raise ValueError("Feature names not available. This should not happen if preprocessor is fitted.")
+            
+        return self.feature_names
     
     def save(self, path: str):
         """Save fitted preprocessor to disk."""
@@ -201,16 +229,19 @@ class DataPreprocessor:
         save_path = Path(path)
         save_path.mkdir(parents=True, exist_ok=True)
         
-        # Save scikit-learn objects
-        joblib.dump(self.grade_scaler, save_path / 'grade_scaler.pkl')
-        joblib.dump(self.zscore_scaler, save_path / 'zscore_scaler.pkl')
-        joblib.dump(self.skill_scaler, save_path / 'skill_scaler.pkl')
-        joblib.dump(self.stream_encoder, save_path / 'stream_encoder.pkl')
-        joblib.dump(self.field_encoder, save_path / 'field_encoder.pkl')
+        # Save all fitted components
+        joblib.dump(self.grade_scaler, save_path / 'grade_scaler.joblib')
+        joblib.dump(self.zscore_scaler, save_path / 'zscore_scaler.joblib')
+        joblib.dump(self.skill_scaler, save_path / 'skill_scaler.joblib')
+        joblib.dump(self.stream_encoder, save_path / 'stream_encoder.joblib')
+        joblib.dump(self.field_encoder, save_path / 'field_encoder.joblib')
+        joblib.dump(self.interest_encoder, save_path / 'interest_encoder.joblib')
+        joblib.dump(self.career_encoder, save_path / 'career_encoder.joblib')
+        joblib.dump(self.environment_encoder, save_path / 'environment_encoder.joblib')  
         
-        # Save mappings
-        with open(save_path / 'grade_mapping.json', 'w') as f:
-            json.dump(self.grade_mapping, f)
+        # Save feature names
+        with open(save_path / 'feature_names.json', 'w') as f:
+            json.dump(self.feature_names, f)
     
     @classmethod
     def load(cls, path: str) -> 'DataPreprocessor':
@@ -218,19 +249,24 @@ class DataPreprocessor:
         load_path = Path(path)
         if not load_path.exists():
             raise ValueError(f"Path {path} does not exist")
-        
+            
         preprocessor = cls()
-        
-        # Load scikit-learn objects
-        preprocessor.grade_scaler = joblib.load(load_path / 'grade_scaler.pkl')
-        preprocessor.zscore_scaler = joblib.load(load_path / 'zscore_scaler.pkl')
-        preprocessor.skill_scaler = joblib.load(load_path / 'skill_scaler.pkl')
-        preprocessor.stream_encoder = joblib.load(load_path / 'stream_encoder.pkl')
-        preprocessor.field_encoder = joblib.load(load_path / 'field_encoder.pkl')
-        
-        # Load mappings
-        with open(load_path / 'grade_mapping.json', 'r') as f:
-            preprocessor.grade_mapping = json.load(f)
+        try:
+            # Load all components
+            preprocessor.grade_scaler = joblib.load(load_path / 'grade_scaler.joblib')
+            preprocessor.zscore_scaler = joblib.load(load_path / 'zscore_scaler.joblib')
+            preprocessor.skill_scaler = joblib.load(load_path / 'skill_scaler.joblib')
+            preprocessor.stream_encoder = joblib.load(load_path / 'stream_encoder.joblib')
+            preprocessor.field_encoder = joblib.load(load_path / 'field_encoder.joblib')
+            preprocessor.interest_encoder = joblib.load(load_path / 'interest_encoder.joblib')
+            preprocessor.career_encoder = joblib.load(load_path / 'career_encoder.joblib')
+            preprocessor.environment_encoder = joblib.load(load_path / 'environment_encoder.joblib')  
+            
+            # Load feature names
+            with open(load_path / 'feature_names.json', 'r') as f:
+                preprocessor.feature_names = json.load(f)
+        except FileNotFoundError as e:
+            raise ValueError(f"Failed to load preprocessor components: {e}")
         
         preprocessor.is_fitted = True
         return preprocessor
