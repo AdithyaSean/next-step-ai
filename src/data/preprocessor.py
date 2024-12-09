@@ -38,66 +38,156 @@ class DataPreprocessor:
     
     def _process_academic_records(self, data: Dict) -> Dict:
         """Process academic records including O/L and A/L results."""
-        processed = {}
+        processed = {
+            # Initialize O/L subjects with defaults
+            'ol_mathematics': 0.0,
+            'ol_science': 0.0,
+            'ol_english': 0.0,
+            'ol_first_language': 0.0,
+            'ol_ict': 0.0,
+            'ol_total_passed': 0,
+            'ol_core_subjects_average': 0.0,
+            
+            # Initialize A/L subjects with defaults
+            'al_stream': '',
+            'al_physics': 0.0,
+            'al_chemistry': 0.0,
+            'al_biology': 0.0,
+            'al_combined_maths': 0.0,
+            'al_business_studies': 0.0,
+            'al_accounting': 0.0,
+            'al_economics': 0.0,
+            'al_subject1': 0.0,  # For arts stream or other subjects
+            'al_subject2': 0.0,
+            'al_subject3': 0.0,
+            'al_zscore': 0.0
+        }
         
-        # Process O/L results
+        # Process O/L results if available
         if 'ol_results' in data:
             ol_results = data['ol_results']
             for subject, grade in ol_results.items():
                 if subject != 'total_subjects_passed':
                     processed[f'ol_{subject}'] = self._convert_grade_to_numeric(grade)
             processed['ol_total_passed'] = ol_results.get('total_subjects_passed', 0)
+            processed['ol_core_subjects_average'] = ol_results.get('core_subjects_average', 0.0)
         
-        # Process A/L results
+        # Process A/L results if available
         if 'al_results' in data and data['al_results']:
             al_results = data['al_results']
             processed['al_stream'] = al_results.get('stream', '')
             
-            # Process subject grades
+            # Process subject grades if available
             if 'subjects' in al_results:
-                for subject, grade in al_results['subjects'].items():
-                    processed[f'al_{subject}'] = self._convert_grade_to_numeric(grade)
+                subjects = al_results['subjects']
+                
+                # Handle specific subjects based on stream
+                if processed['al_stream'] == 'PHYSICAL_SCIENCE':
+                    processed.update({
+                        'al_physics': self._convert_grade_to_numeric(subjects.get('physics', 0)),
+                        'al_chemistry': self._convert_grade_to_numeric(subjects.get('chemistry', 0)),
+                        'al_combined_maths': self._convert_grade_to_numeric(subjects.get('combined_maths', 0))
+                    })
+                elif processed['al_stream'] == 'BIOLOGICAL_SCIENCE':
+                    processed.update({
+                        'al_biology': self._convert_grade_to_numeric(subjects.get('biology', 0)),
+                        'al_physics': self._convert_grade_to_numeric(subjects.get('physics', 0)),
+                        'al_chemistry': self._convert_grade_to_numeric(subjects.get('chemistry', 0))
+                    })
+                elif processed['al_stream'] == 'COMMERCE':
+                    processed.update({
+                        'al_business_studies': self._convert_grade_to_numeric(subjects.get('business_studies', 0)),
+                        'al_accounting': self._convert_grade_to_numeric(subjects.get('accounting', 0)),
+                        'al_economics': self._convert_grade_to_numeric(subjects.get('economics', 0))
+                    })
+                else:  # ARTS or other streams
+                    # Map generic subjects to subject1, subject2, subject3
+                    subject_values = list(subjects.values())
+                    for i, grade in enumerate(subject_values[:3]):
+                        processed[f'al_subject{i+1}'] = self._convert_grade_to_numeric(grade)
             
             # Add z-score if available
             processed['al_zscore'] = float(al_results.get('zscore', 0.0))
-        else:
-            processed['al_stream'] = ''
-            processed['al_zscore'] = 0.0
         
         return processed
-    
+
     def _process_university_data(self, data: Dict) -> Dict:
         """Process university-related data."""
-        processed = {}
+        processed = {
+            'degree_type': '',
+            'degree_field': '',
+            'current_year': 0,
+            'current_gpa': 0.0,
+            'specialization': '',
+            'research_experience': 0,
+            'internship_experience': 0
+        }
         
-        if 'university_preferences' in data:
-            uni_prefs = data['university_preferences']
+        if 'university_data' in data and data['university_data']:
+            uni_data = data['university_data']
             processed.update({
-                'degree_field': uni_prefs.get('field', ''),
-                'preferred_location': uni_prefs.get('location', ''),
-                'max_cost': uni_prefs.get('max_cost', 0)
+                'degree_type': uni_data.get('degree_type', ''),
+                'degree_field': uni_data.get('field_of_study', ''),
+                'current_year': uni_data.get('current_year', 0),
+                'current_gpa': float(uni_data.get('current_gpa', 0.0)),
+                'specialization': uni_data.get('specialization', ''),
+                'research_experience': len(uni_data.get('significant_projects', [])),
+                'internship_experience': len(uni_data.get('internships', []))
             })
         
         return processed
-    
+
     def _process_preferences(self, data: Dict) -> Dict:
         """Process career preferences and constraints."""
-        processed = {}
+        processed = {
+            # Initialize with defaults
+            'preferred_role_technical': 0,
+            'preferred_role_research': 0,
+            'preferred_role_management': 0,
+            'preferred_sector_technology': 0,
+            'preferred_sector_education': 0,
+            'preferred_sector_research': 0,
+            'research_oriented': 0,
+            'industry_oriented': 0,
+            'entrepreneurship_interest': 0,
+            'further_studies': 0,
+            'industry_experience': 0,
+            'startup_plans': 0
+        }
         
-        if 'career_preferences' in data:
+        # Process career preferences if available
+        if 'career_preferences' in data and data['career_preferences']:
             prefs = data['career_preferences']
-            processed.update({
-                'min_salary': prefs.get('min_salary', 0),
-                'work_environment': prefs.get('work_environment', '')
-            })
-        
-        # Get career path directly from profile (target variable)
-        processed['career_path'] = data.get('career_path', 'General Studies')
-        
-        # Process skills
-        if 'skills_assessment' in data:  
-            for skill, level in data['skills_assessment'].items():
-                processed[f'skill_{skill}'] = level
+            
+            # Process preferred roles
+            for role in prefs.get('preferred_roles', []):
+                role_key = f'preferred_role_{role.lower().split()[0]}'
+                if role_key in processed:
+                    processed[role_key] = 1
+            
+            # Process preferred sectors
+            for sector in prefs.get('preferred_sectors', []):
+                sector_key = f'preferred_sector_{sector.lower()}'
+                if sector_key in processed:
+                    processed[sector_key] = 1
+            
+            # Process work preferences
+            if 'work_preferences' in prefs:
+                work_prefs = prefs['work_preferences']
+                processed.update({
+                    'research_oriented': int(work_prefs.get('research_oriented', False)),
+                    'industry_oriented': int(work_prefs.get('industry_oriented', False)),
+                    'entrepreneurship_interest': int(work_prefs.get('entrepreneurship_interest', False))
+                })
+            
+            # Process career goals
+            if 'career_goals' in prefs:
+                goals = prefs['career_goals']
+                processed.update({
+                    'further_studies': int(goals.get('further_studies', False)),
+                    'industry_experience': int(goals.get('industry_experience', False)),
+                    'startup_plans': int(goals.get('startup_plans', False))
+                })
         
         return processed
     
@@ -156,6 +246,41 @@ class DataPreprocessor:
         processed_data = [self.preprocess_single(profile) for profile in data]
         df = pd.DataFrame(processed_data)
         
+        # Ensure all required columns are present with default values
+        required_columns = [
+            # O/L subjects
+            'ol_mathematics', 'ol_science', 'ol_english', 'ol_first_language', 'ol_ict',
+            'ol_total_passed', 'ol_core_subjects_average',
+            
+            # A/L subjects and stream
+            'al_stream', 'al_physics', 'al_chemistry', 'al_biology', 'al_combined_maths',
+            'al_business_studies', 'al_accounting', 'al_economics',
+            'al_subject1', 'al_subject2', 'al_subject3', 'al_zscore',
+            
+            # University data
+            'degree_type', 'degree_field', 'current_year', 'current_gpa', 'specialization',
+            'research_experience', 'internship_experience',
+            
+            # Career preferences
+            'preferred_role_technical', 'preferred_role_research', 'preferred_role_management',
+            'preferred_sector_technology', 'preferred_sector_education', 'preferred_sector_research',
+            'research_oriented', 'industry_oriented', 'entrepreneurship_interest',
+            'further_studies', 'industry_experience', 'startup_plans'
+        ]
+        
+        # Add missing columns with default values
+        for col in required_columns:
+            if col not in df.columns:
+                if col.startswith(('ol_', 'al_')) and not col.endswith(('stream', 'passed')):
+                    df[col] = 0.0  # Numeric grades default to 0
+                elif col.endswith(('_oriented', '_interest', '_studies', '_experience', '_plans')):
+                    df[col] = 0  # Boolean flags default to 0
+                else:
+                    df[col] = ''  # Categorical variables default to empty string
+        
+        # Reorder columns to match training data
+        df = df[required_columns]
+        
         # Transform numerical features
         grade_cols = [col for col in df.columns if col.startswith(('ol_', 'al_'))
                      and col not in ['ol_total_passed', 'al_stream']]
@@ -167,17 +292,8 @@ class DataPreprocessor:
             df['al_stream'] = self.stream_encoder.transform(df['al_stream'].fillna(''))
         if 'degree_field' in df.columns:
             df['degree_field'] = self.field_encoder.transform(df['degree_field'].fillna(''))
-        if 'work_environment' in df.columns:  
-            df['work_environment'] = self.environment_encoder.transform(df['work_environment'].fillna(''))
         
-        # Transform skills
-        skill_cols = [col for col in df.columns if col.startswith('skill_')]
-        if skill_cols:
-            df[skill_cols] = self.skill_scaler.transform(df[skill_cols].fillna(0))
-        
-        # Handle target variable if present
-        if 'career_path' in df.columns:
-            df['career_path'] = self.career_encoder.transform(df['career_path'].fillna(''))
+        # Transform skills (already handled in _process_preferences)
         
         return df
     
