@@ -21,10 +21,11 @@ class StudentDataGenerator:
         results = {}
         for subject, (mean, std) in config.GRADE_DISTRIBUTIONS['OL'].items():
             grade = self.rng.normal(mean, std)
-            results[subject] = float(min(max(round(grade, 2), 0), 100))
+            # Convert to integer in range 0-100
+            results[subject] = int(min(max(round(grade), 0), 100))
         
         results['total_subjects_passed'] = int(sum(1 for grade in results.values() if grade >= 35))
-        results['core_subjects_average'] = float(np.mean([
+        results['core_subjects_average'] = int(np.mean([
             results['mathematics'],
             results['science'],
             results['english']
@@ -33,22 +34,28 @@ class StudentDataGenerator:
     
     def generate_al_results(self, stream: str) -> Dict:
         """Generate A/L results for given stream."""
-        results = {'stream': stream, 'subjects': {}}
+        results = {'stream': stream}
         
+        # Initialize subjects dict with the stream key
+        results[stream.lower()] = {}
+        
+        # Get stream-specific subjects
         for subject, (mean, std) in config.GRADE_DISTRIBUTIONS['AL'][stream].items():
             grade = self.rng.normal(mean, std)
-            results['subjects'][subject] = float(min(max(round(grade, 2), 0), 100))
+            # Convert to integer in range 0-100
+            results[stream.lower()][subject] = int(min(max(round(grade), 0), 100))
         
         # Generate realistic z-score
         results['zscore'] = float(round(self.rng.normal(1.2, 0.6), 2))
         return results
     
-    def generate_skills_assessment(self) -> Dict[str, float]:
+    def generate_skills_assessment(self) -> Dict[str, int]:
         """Generate skill ratings."""
         skills = {}
         for skill, (mean, std) in config.SKILL_DISTRIBUTIONS.items():
             rating = round(self.rng.normal(mean, std))
-            skills[skill] = float(min(max(rating, 1), 5))
+            # Ensure integer in range 1-5
+            skills[skill] = int(min(max(rating, 1), 5))
         return skills
     
     def generate_university_data(self, stream: str) -> Dict:
@@ -69,7 +76,8 @@ class StudentDataGenerator:
         if field in config.TECHNICAL_SKILLS:
             for skill, (mean, std) in config.TECHNICAL_SKILLS[field].items():
                 rating = round(self.rng.normal(mean, std))
-                tech_skills[skill] = float(min(max(rating, 1), 5))
+                # Ensure integer in range 1-5
+                tech_skills[skill] = int(min(max(rating, 1), 5))
         
         # Generate projects
         num_projects = self.rng.integers(1, 4)
@@ -129,38 +137,12 @@ class StudentDataGenerator:
                 if req_key in requirements and ol_results[subject] >= requirements[req_key]:
                     score += 0.3
             
-            # Check A/L stream and results if available
+            # Check A/L results if available
             if al_results is not None:
-                al_subjects = {
-                    'PHYSICAL_SCIENCE': {
-                        'combined_maths': 'min_al_maths',
-                        'physics': 'min_al_physics',
-                        'chemistry': 'min_al_chemistry'
-                    },
-                    'BIOLOGICAL_SCIENCE': {
-                        'biology': 'min_al_biology',
-                        'chemistry': 'min_al_chemistry',
-                        'physics': 'min_al_physics'
-                    },
-                    'COMMERCE': {
-                        'business_studies': 'min_al_business',
-                        'accounting': 'min_al_accounting',
-                        'economics': 'min_al_economics'
-                    },
-                    'ARTS': {
-                        'subject1': 'min_al_subject1',
-                        'subject2': 'min_al_subject2',
-                        'subject3': 'min_al_subject3'
-                    }
-                }
-                
-                stream = al_results['stream']
-                if stream in al_subjects:
-                    for subject, req_key in al_subjects[stream].items():
-                        if (req_key in requirements and 
-                            subject in al_results['subjects'] and 
-                            al_results['subjects'][subject] >= requirements[req_key]):
-                            score += 0.4
+                for subject, grade in al_results.items():
+                    req_key = f'min_al_{subject.lower()}'
+                    if req_key in requirements and grade >= requirements[req_key]:
+                        score += 0.4
             else:
                 # For O/L only students, give partial credit for being in the right academic track
                 if ('min_ol_maths' in requirements and 
@@ -211,14 +193,14 @@ class StudentDataGenerator:
             'preferred_roles': preferred_roles,
             'preferred_sectors': preferred_sectors,
             'work_preferences': {
-                'research_oriented': int(random.choice([1, 0])),
-                'industry_oriented': int(random.choice([1, 0])),
-                'entrepreneurship_interest': int(random.choice([1, 0]))
+                'research_oriented': bool(random.choice([True, False])),
+                'industry_oriented': bool(random.choice([True, False])),
+                'entrepreneurship_interest': bool(random.choice([True, False]))
             },
             'career_goals': {
-                'further_studies': int(random.choice([1, 0])),
-                'industry_experience': int(random.choice([1, 0])),
-                'startup_plans': int(random.choice([1, 0]))
+                'further_studies': bool(random.choice([True, False])),
+                'industry_experience': bool(random.choice([True, False])),
+                'startup_plans': bool(random.choice([True, False]))
             }
         }
     
@@ -229,13 +211,13 @@ class StudentDataGenerator:
                 list(config.DISTRICTS.keys()),
                 p=list(config.DISTRICTS.values())
             ),
-            'financial_constraints': int(np.random.choice(
-                [1, 0],
+            'financial_constraints': bool(np.random.choice(
+                [True, False],
                 p=[config.FINANCIAL_CONSTRAINTS[True], 
                    config.FINANCIAL_CONSTRAINTS[False]]
             )),
-            'willing_to_relocate': int(np.random.choice(
-                [1, 0],
+            'willing_to_relocate': bool(np.random.choice(
+                [True, False],
                 p=[config.RELOCATION_WILLINGNESS[True],
                    config.RELOCATION_WILLINGNESS[False]]
             ))
@@ -251,15 +233,12 @@ class StudentDataGenerator:
             p=list(config.EDUCATION_LEVEL_DIST.values())
         )
         
-        # Generate base profile
-        profile = {
-            'student_id': f"ST{str(uuid.uuid4())[:8]}",
-            'education_level': education_level,
-            'ol_results': self.generate_ol_results(),
-            'skills_assessment': self.generate_skills_assessment(),
-            'interests': random.sample(list(config.INTEREST_AREAS.keys()), 3),
-            'constraints': self.generate_constraints(),
-            'al_results': None  # Initialize as None by default
+        # Generate O/L results
+        ol_results = self.generate_ol_results()
+        
+        # Initialize academic data
+        academic_data = {
+            'ol_results': ol_results
         }
         
         # Add A/L results if applicable
@@ -268,18 +247,50 @@ class StudentDataGenerator:
                 list(config.AL_STREAM_DIST.keys()),
                 p=list(config.AL_STREAM_DIST.values())
             )
-            profile['al_results'] = self.generate_al_results(stream)
+            al_data = self.generate_al_results(stream)
+            academic_data.update({
+                'al_stream': stream,
+                'al_results': al_data,  # Include the entire al_data with stream-nested results
+                'zscore': al_data['zscore']
+            })
             
             # Add university data if applicable
             if education_level in ['UNDERGRADUATE', 'GRADUATE']:
-                profile['university_data'] = self.generate_university_data(stream)
-                profile['career_preferences'] = self.generate_career_preferences()
+                academic_data['university_data'] = self.generate_university_data(stream)
+        
+        # Generate skills data
+        skills_data = {
+            'analytical_thinking': int(self.rng.integers(1, 6)),
+            'problem_solving': int(self.rng.integers(1, 6)),
+            'creativity': int(self.rng.integers(1, 6)),
+            'communication': int(self.rng.integers(1, 6)),
+            **self.generate_skills_assessment()
+        }
+        
+        # Generate interests data
+        interests_data = {
+            'primary_interests': random.sample(list(config.INTEREST_AREAS.keys()), 3)
+        }
+        
+        # Generate base profile
+        profile = {
+            'student_id': f"ST{str(uuid.uuid4())[:8]}",
+            'education_level': education_level,
+            'academic_data': academic_data,
+            'skills_data': skills_data,
+            'interests_data': interests_data,
+            'constraints': self.generate_constraints()
+        }
+        
+        # Add career preferences for higher education levels
+        if education_level in ['UNDERGRADUATE', 'GRADUATE']:
+            profile['career_preferences'] = self.generate_career_preferences()
         
         # Determine career path
         profile['career_path'] = self.determine_career_path(
-            profile['ol_results'],
-            profile['al_results'],
-            profile['skills_assessment']
+            ol_results,
+            academic_data.get('al_results', {}).get(stream.lower(), None) if 'al_stream' in academic_data else None,
+            skills_data
         )
         
         return profile

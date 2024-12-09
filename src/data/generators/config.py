@@ -215,17 +215,13 @@ PROJECT_TYPES = {
         'min_duration': 3,
         'max_duration': 12
     },
-    'Development': {
+    'Project': {
         'min_duration': 2,
         'max_duration': 6
     },
-    'Analysis': {
+    'Internship': {
         'min_duration': 1,
         'max_duration': 4
-    },
-    'Design': {
-        'min_duration': 2,
-        'max_duration': 8
     }
 }
 
