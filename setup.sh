@@ -3,49 +3,11 @@
 # Exit on error
 set -e
 
-# Function to check if running on Windows
-is_windows() {
-    if [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ] || \
-       [ "$(expr substr $(uname -s) 1 4)" == "MSYS" ] || \
-       [ "$(expr substr $(uname -s) 1 5)" == "CYGWI" ]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-# Function to clean up on error
-cleanup() {
-    if [ $? -ne 0 ]; then
-        echo "❌ Error occurred during setup"
-        echo "🧹 Cleaning up..."
-        # Deactivate virtual environment if active
-        if [ -n "$VIRTUAL_ENV" ]; then
-            deactivate 2>/dev/null || true
-        fi
-        # Remove virtual environment if it exists
-        [ -d "venv" ] && rm -rf venv
-        echo "🔄 Please try running the script again"
-        exit 1
-    fi
-}
-
-# Register cleanup function
-trap cleanup EXIT
-
 echo "🚀 Setting up Next Step AI development environment..."
 
 # Check Python version
-python_version=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
-major_version=$(echo $python_version | cut -d. -f1)
-minor_version=$(echo $python_version | cut -d. -f2)
-
-if [ "$major_version" -lt 3 ] || ([ "$major_version" -eq 3 ] && [ "$minor_version" -lt 8 ]); then
-    echo "❌ Error: Python 3.8 or higher is required (found $python_version)"
-    exit 1
-fi
-
-echo "✅ Python version $python_version detected"
+python_version=$(python3 -V 2>&1 | awk '{print $2}')
+echo "📌 Using Python version: $python_version"
 
 # Remove existing venv if it exists
 if [ -d "venv" ]; then
@@ -57,31 +19,44 @@ fi
 echo "📦 Creating virtual environment..."
 python3 -m venv venv
 
-# Activate virtual environment based on OS
-if is_windows; then
-    echo "🪟 Detected Windows OS"
-    source venv/Scripts/activate
-else
-    echo "🐧 Detected Unix-like OS"
-    source venv/bin/activate
+# Activate virtual environment
+echo "🔌 Activating virtual environment..."
+source venv/bin/activate
+
+# Upgrade pip and install build dependencies first
+echo "🔄 Upgrading pip and installing build dependencies..."
+python3 -m pip install --upgrade pip
+python3 -m pip install --upgrade setuptools wheel
+
+# Install all requirements
+echo "📥 Installing project dependencies..."
+python3 -m pip install --upgrade -r requirements.txt
+
+# Create necessary directories
+echo "🗂️ Creating project directories..."
+mkdir -p data/{raw,processed,models}
+mkdir -p logs
+mkdir -p models/saved
+
+# Set up pre-commit hooks if git is initialized
+if [ -d ".git" ]; then
+    echo "🔩 Setting up pre-commit hooks..."
+    # Add any pre-commit setup here
 fi
 
-# Upgrade pip
-echo "🔄 Upgrading pip..."
-python -m pip install --upgrade pip
-
-# Install requirements
-echo "📥 Installing dependencies..."
-pip install -r requirements.txt
-
-echo "✅ Setup complete! Virtual environment is activated and dependencies are installed."
-echo "💡 To activate the virtual environment in the future:"
-if is_windows; then
-    echo "   Run: venv\\Scripts\\activate"
-else
-    echo "   Run: source venv/bin/activate"
+# Create .env file if it doesn't exist
+if [ ! -f ".env" ]; then
+    echo "📝 Creating .env file..."
+    cp .env.example .env || echo "⚠️  No .env.example found, skipping..."
 fi
 
-# Verify key packages
-echo "🔍 Verifying installation..."
-python -c "import lightgbm as lgb; import numpy as np; import pandas as pd; import sklearn; print(f'LightGBM: {lgb.__version__}\nNumPy: {np.__version__}\nPandas: {pd.__version__}\nscikit-learn: {sklearn.__version__}')"
+# Verify installation
+echo "🔍 Verifying key packages..."
+python3 -c "import sys; print(f'Python: {sys.version}')"
+python3 -c "import numpy; print(f'NumPy: {numpy.__version__}')"
+python3 -c "import pandas; print(f'Pandas: {pandas.__version__}')"
+python3 -c "import sklearn; print(f'Scikit-learn: {sklearn.__version__}')"
+python3 -c "import lightgbm; print(f'LightGBM: {lightgbm.__version__}')"
+
+echo "✅ Setup complete! Activate the virtual environment with:"
+echo "   source venv/bin/activate"

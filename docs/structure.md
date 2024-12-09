@@ -5,7 +5,12 @@
 next-step-ai/
 ├── data/                      # Data storage and processing
 │   ├── raw/                  # Raw generated datasets
+│   │   └── student_profiles.json
 │   ├── processed/            # Cleaned and processed data
+│   │   └── processed_profiles.csv
+│   ├── models/              # Saved models and preprocessors
+│   │   ├── preprocessor/    # Saved preprocessor state
+│   │   └── career_predictor/  # Saved model state
 │   └── samples/             # Sample data for testing
 │
 ├── docs/                     # Documentation
@@ -18,7 +23,9 @@ next-step-ai/
 │   └── saved/               # Saved model files
 │
 ├── scripts/                  # Utility scripts
-│   └── generate_dataset.py  # Dataset generation script
+│   ├── generate_dataset.py  # Dataset generation script
+│   ├── process_data.py      # Data processing script
+│   └── train_model.py       # Model training script
 │
 ├── src/                     # Source code
 │   ├── api/                # API implementation
@@ -42,39 +49,45 @@ next-step-ai/
 │   │
 │   ├── models/            # ML models
 │   │   ├── __init__.py
-│   │   └── career_predictor.py  # Main prediction model
+│   │   ├── career_predictor.py  # Career prediction model
+│   │   └── evaluator.py   # Model evaluation metrics
 │   │
 │   └── utils/             # Utility functions
-│       └── __init__.py
+│       ├── __init__.py
+│       ├── logger.py      # Logging utilities
+│       └── metrics.py     # Performance metrics
 │
-├── tests/                   # Test files
+├── tests/                   # Test suite
 │   ├── __init__.py
+│   ├── conftest.py         # Test configuration
 │   ├── data/              # Data processing tests
 │   │   ├── __init__.py
 │   │   ├── test_generator.py
-│   │   └── test_validator.py
-│   └── models/             # Model tests
-│       └── __init__.py
+│   │   └── test_preprocessor.py
+│   ├── models/            # Model tests
+│   │   ├── __init__.py
+│   │   ├── test_predictor.py
+│   └── api/               # API tests
+│       ├── __init__.py
+│       └── test_endpoints.py
 │
-├── .env.example            # Environment variables template
-├── .gitignore             # Git ignore file
-├── README.md              # Project overview
-├── requirements.txt       # Project dependencies
-└── setup.sh              # Environment setup script
+├── README.md               # Project overview
+├── requirements.txt        # Python dependencies
+└── setup.sh               # Setup script
 ```
 
 ## Recent Changes
-- [2024-12-08] Added Data Generation System
-  - Created dataset generator with Sri Lankan education patterns
-  - Added configuration for realistic distributions
-  - Implemented compatibility checker with API models
-  - Added sample data generation script
+- [2024-12-08] Added Model Development
+  - Created LightGBM-based career predictor
+  - Added model training pipeline
+  - Implemented feature importance analysis
+  - Added model persistence
 
-- [2024-12-08] Added FastAPI Implementation
-  - Created complete API structure
-  - Added authentication system
-  - Implemented data validation
-  - Added database operations
+- [2024-12-08] Enhanced Data Pipeline
+  - Added data preprocessing system
+  - Created data validation
+  - Implemented data compatibility checker
+  - Added sample data generation
 
 ## Key Components
 
@@ -83,26 +96,29 @@ next-step-ai/
 - `dataset_generator.py`: Main data generation logic
 - `compatibility_check.py`: API compatibility verification
 
-### API Layer (`src/api/`)
-- `models.py`: Pydantic models for request/response
-- `routes.py`: API endpoints implementation
-- `auth.py`: JWT authentication
-- `database.py`: Async database operations
-
 ### Data Processing (`src/data/`)
+- `preprocessor.py`: Data preprocessing pipeline
 - `validator.py`: Data validation logic
-- `preprocessor.py`: Data preprocessing utilities
 
-### ML Models (`src/models/`)
-- `career_predictor.py`: Career prediction implementation
+### Model Implementation (`src/models/`)
+- `career_predictor.py`: LightGBM-based prediction model
+  - Training pipeline
+  - Feature importance analysis
+  - Model persistence
+  - Performance metrics
+
+### Scripts
+- `generate_dataset.py`: Generate sample data
+- `process_data.py`: Preprocess and validate data
+- `train_model.py`: Train and evaluate model
 
 ## Data Flow
 1. Data Generation → Validation → Storage
-2. API Request → Validation → Processing → Response
-3. Model Training → Evaluation → Deployment
+2. Raw Data → Preprocessing → Training Data
+3. Training Data → Model Training → Evaluation
+4. Model → Persistence → Deployment
 
 ## Dependencies
-Current dependencies:
 ```
 Core ML:
 - lightgbm>=4.1.0
@@ -121,40 +137,43 @@ API:
 - python-dotenv>=1.0.0
 ```
 
-## Generated Data Structure
-1. Student Profiles (JSON/CSV)
-   - Academic records
-   - Skills assessment
-   - Career preferences
-   - Constraints
-
-2. Sample Data
-   - Test cases
-   - Validation examples
-   - API compatibility checks
-
 ## Development Guidelines
-1. Follow FastAPI best practices
-2. Use async/await for database operations
-3. Validate all input data
-4. Document all endpoints
-5. Write tests for new features
-6. Keep dependencies minimal
-7. Maintain security best practices
+1. Follow PEP 8 style guide
+2. Write comprehensive tests
+3. Document all functions
+4. Use type hints
+5. Handle errors gracefully
+6. Keep code maintainable
 
 ## Data Generation Guidelines
 1. Follow Sri Lankan education patterns
 2. Use realistic distributions
-3. Maintain data relationships
-4. Validate against API models
-5. Generate reproducible datasets
+3. Ensure data privacy
+4. Generate diverse profiles
+5. Maintain data quality
+
+## Model Development Guidelines
+1. Ensure reproducibility
+2. Track experiments
+3. Version models
+4. Document parameters
+5. Validate thoroughly
+6. Provide explanations
+
+## API Development Guidelines
+1. Follow REST principles
+2. Version endpoints
+3. Validate inputs
+4. Handle errors
+5. Rate limit requests
+6. Document thoroughly
 
 ## Testing Strategy
-1. Unit tests for generators
-2. Validation tests for API models
-3. Integration tests for data flow
-4. Performance tests for model
-5. API endpoint tests
+1. Unit tests for components
+2. Integration tests for pipeline
+3. Model performance tests
+4. API endpoint tests
+5. Data validation tests
 
 ## Security Measures
 1. JWT authentication
@@ -162,12 +181,10 @@ API:
 3. Environment variables
 4. CORS protection
 5. Input validation
-6. Rate limiting (to be added)
 
 ## Notes
 - Keep raw data immutable
-- Use processed/ for modified data
-- Update documentation when making changes
-- Follow API versioning
+- Monitor model metrics
+- Update documentation
+- Follow versioning
 - Maintain test coverage
-- Validate generated data

@@ -21,26 +21,32 @@ class StudentDataGenerator:
         results = {}
         for subject, (mean, std) in config.GRADE_DISTRIBUTIONS['OL'].items():
             grade = self.rng.normal(mean, std)
-            results[subject] = min(max(round(grade, 2), 0), 100)
+            # Convert to integer in range 0-100
+            results[subject] = int(min(max(round(grade), 0), 100))
         
-        results['total_subjects_passed'] = sum(1 for grade in results.values() if grade >= 35)
-        results['core_subjects_average'] = np.mean([
+        results['total_subjects_passed'] = int(sum(1 for grade in results.values() if grade >= 35))
+        results['core_subjects_average'] = int(np.mean([
             results['mathematics'],
             results['science'],
             results['english']
-        ])
+        ]))
         return results
     
     def generate_al_results(self, stream: str) -> Dict:
         """Generate A/L results for given stream."""
-        results = {'stream': stream, 'subjects': {}}
+        results = {'stream': stream}
         
+        # Initialize subjects dict with the stream key
+        results[stream.lower()] = {}
+        
+        # Get stream-specific subjects
         for subject, (mean, std) in config.GRADE_DISTRIBUTIONS['AL'][stream].items():
             grade = self.rng.normal(mean, std)
-            results['subjects'][subject] = min(max(round(grade, 2), 0), 100)
+            # Convert to integer in range 0-100
+            results[stream.lower()][subject] = int(min(max(round(grade), 0), 100))
         
         # Generate realistic z-score
-        results['zscore'] = round(self.rng.normal(1.2, 0.6), 2)
+        results['zscore'] = float(round(self.rng.normal(1.2, 0.6), 2))
         return results
     
     def generate_skills_assessment(self) -> Dict[str, int]:
@@ -48,7 +54,8 @@ class StudentDataGenerator:
         skills = {}
         for skill, (mean, std) in config.SKILL_DISTRIBUTIONS.items():
             rating = round(self.rng.normal(mean, std))
-            skills[skill] = min(max(rating, 1), 5)
+            # Ensure integer in range 1-5
+            skills[skill] = int(min(max(rating, 1), 5))
         return skills
     
     def generate_university_data(self, stream: str) -> Dict:
@@ -60,26 +67,27 @@ class StudentDataGenerator:
             config.GPA_DISTRIBUTION['mean'],
             config.GPA_DISTRIBUTION['std']
         )
-        gpa = min(max(round(gpa, 2), 
+        gpa = float(min(max(round(gpa, 2), 
                      config.GPA_DISTRIBUTION['min']),
-                 config.GPA_DISTRIBUTION['max'])
+                 config.GPA_DISTRIBUTION['max']))
         
         # Generate technical skills
         tech_skills = {}
         if field in config.TECHNICAL_SKILLS:
             for skill, (mean, std) in config.TECHNICAL_SKILLS[field].items():
                 rating = round(self.rng.normal(mean, std))
-                tech_skills[skill] = min(max(rating, 1), 5)
+                # Ensure integer in range 1-5
+                tech_skills[skill] = int(min(max(rating, 1), 5))
         
         # Generate projects
         num_projects = self.rng.integers(1, 4)
         projects = []
         for _ in range(num_projects):
             proj_type = random.choice(list(config.PROJECT_TYPES.keys()))
-            duration = self.rng.integers(
+            duration = int(self.rng.integers(
                 config.PROJECT_TYPES[proj_type]['min_duration'],
                 config.PROJECT_TYPES[proj_type]['max_duration']
-            )
+            ))
             projects.append({
                 'type': proj_type,
                 'domain': field,
@@ -88,7 +96,7 @@ class StudentDataGenerator:
         
         return {
             'degree_type': 'Bachelors',
-            'current_year': self.rng.integers(1, 5),
+            'current_year': int(self.rng.integers(1, 5)),
             'field_of_study': field,
             'specialization': random.choice(config.UNIVERSITY_FIELDS[stream]),
             'current_gpa': gpa,
@@ -99,17 +107,78 @@ class StudentDataGenerator:
     
     def _generate_internships(self, field: str) -> List[Dict]:
         """Generate internship experiences."""
-        num_internships = self.rng.integers(0, 3)
+        num_internships = int(self.rng.integers(0, 3))
         internships = []
         
         for _ in range(num_internships):
             internships.append({
                 'field': field,
-                'duration_months': self.rng.integers(1, 7),
+                'duration_months': int(self.rng.integers(1, 7)),
                 'role_type': random.choice(['Technical', 'Research', 'Management'])
             })
         
         return internships
+    
+    def determine_career_path(self, ol_results: Dict, al_results: Optional[Dict], skills: Dict[str, float]) -> str:
+        """Determine the most suitable career path based on academic performance and skills."""
+        career_scores = {}
+        
+        for career, requirements in config.CAREER_PATHS.items():
+            score = 0.0
+            
+            # Check O/L requirements
+            ol_subjects = {
+                'mathematics': 'min_ol_maths',
+                'science': 'min_ol_science',
+                'english': 'min_ol_english'
+            }
+            
+            for subject, req_key in ol_subjects.items():
+                if req_key in requirements and ol_results[subject] >= requirements[req_key]:
+                    score += 0.3
+            
+            # Check A/L results if available
+            if al_results is not None:
+                for subject, grade in al_results.items():
+                    req_key = f'min_al_{subject.lower()}'
+                    if req_key in requirements and grade >= requirements[req_key]:
+                        score += 0.4
+            else:
+                # For O/L only students, give partial credit for being in the right academic track
+                if ('min_ol_maths' in requirements and 
+                    ol_results['mathematics'] >= requirements['min_ol_maths'] + 5):
+                    score += 0.2
+                elif ('min_ol_science' in requirements and 
+                      ol_results['science'] >= requirements['min_ol_science'] + 5):
+                    score += 0.2
+                elif ('min_ol_english' in requirements and 
+                      ol_results['english'] >= requirements['min_ol_english'] + 5):
+                    score += 0.2
+            
+            # Check skills match
+            required_skills = requirements['required_skills']
+            matching_skills = sum(1 for skill in required_skills 
+                                if skill in skills and skills[skill] >= 3.5)
+            score += (matching_skills / len(required_skills)) * 0.3
+            
+            # Add significant randomness to ensure diversity (±15%)
+            score *= (1 + self.rng.uniform(-0.15, 0.15))
+            
+            career_scores[career] = score
+        
+        # Get top 3 careers by score
+        top_careers = sorted(career_scores.items(), key=lambda x: x[1], reverse=True)[:3]
+        
+        # If any careers have a good score, randomly select from top 3
+        good_careers = [(career, score) for career, score in top_careers if score >= 0.5]
+        if good_careers:
+            # Weight selection by scores
+            careers, scores = zip(*good_careers)
+            total_score = sum(scores)
+            probabilities = [score/total_score for score in scores]
+            return str(np.random.choice(careers, p=probabilities))
+        
+        return 'General Studies'
     
     def generate_career_preferences(self) -> Dict:
         """Generate career preferences."""
@@ -124,14 +193,14 @@ class StudentDataGenerator:
             'preferred_roles': preferred_roles,
             'preferred_sectors': preferred_sectors,
             'work_preferences': {
-                'research_oriented': random.choice([True, False]),
-                'industry_oriented': random.choice([True, False]),
-                'entrepreneurship_interest': random.choice([True, False])
+                'research_oriented': bool(random.choice([True, False])),
+                'industry_oriented': bool(random.choice([True, False])),
+                'entrepreneurship_interest': bool(random.choice([True, False]))
             },
             'career_goals': {
-                'further_studies': random.choice([True, False]),
-                'industry_experience': random.choice([True, False]),
-                'startup_plans': random.choice([True, False])
+                'further_studies': bool(random.choice([True, False])),
+                'industry_experience': bool(random.choice([True, False])),
+                'startup_plans': bool(random.choice([True, False]))
             }
         }
     
@@ -142,16 +211,16 @@ class StudentDataGenerator:
                 list(config.DISTRICTS.keys()),
                 p=list(config.DISTRICTS.values())
             ),
-            'financial_constraints': np.random.choice(
+            'financial_constraints': bool(np.random.choice(
                 [True, False],
                 p=[config.FINANCIAL_CONSTRAINTS[True], 
                    config.FINANCIAL_CONSTRAINTS[False]]
-            ),
-            'willing_to_relocate': np.random.choice(
+            )),
+            'willing_to_relocate': bool(np.random.choice(
                 [True, False],
                 p=[config.RELOCATION_WILLINGNESS[True],
                    config.RELOCATION_WILLINGNESS[False]]
-            )
+            ))
         }
     
     def generate_student(self) -> Dict:
@@ -164,14 +233,12 @@ class StudentDataGenerator:
             p=list(config.EDUCATION_LEVEL_DIST.values())
         )
         
-        # Generate base profile
-        profile = {
-            'student_id': f"ST{str(uuid.uuid4())[:8]}",
-            'education_level': education_level,
-            'ol_results': self.generate_ol_results(),
-            'skills_assessment': self.generate_skills_assessment(),
-            'interests': random.sample(list(config.INTEREST_AREAS.keys()), 3),
-            'constraints': self.generate_constraints()
+        # Generate O/L results
+        ol_results = self.generate_ol_results()
+        
+        # Initialize academic data
+        academic_data = {
+            'ol_results': ol_results
         }
         
         # Add A/L results if applicable
@@ -180,12 +247,51 @@ class StudentDataGenerator:
                 list(config.AL_STREAM_DIST.keys()),
                 p=list(config.AL_STREAM_DIST.values())
             )
-            profile['al_results'] = self.generate_al_results(stream)
+            al_data = self.generate_al_results(stream)
+            academic_data.update({
+                'al_stream': stream,
+                'al_results': al_data,  # Include the entire al_data with stream-nested results
+                'zscore': al_data['zscore']
+            })
             
             # Add university data if applicable
             if education_level in ['UNDERGRADUATE', 'GRADUATE']:
-                profile['university_data'] = self.generate_university_data(stream)
-                profile['career_preferences'] = self.generate_career_preferences()
+                academic_data['university_data'] = self.generate_university_data(stream)
+        
+        # Generate skills data
+        skills_data = {
+            'analytical_thinking': int(self.rng.integers(1, 6)),
+            'problem_solving': int(self.rng.integers(1, 6)),
+            'creativity': int(self.rng.integers(1, 6)),
+            'communication': int(self.rng.integers(1, 6)),
+            **self.generate_skills_assessment()
+        }
+        
+        # Generate interests data
+        interests_data = {
+            'primary_interests': random.sample(list(config.INTEREST_AREAS.keys()), 3)
+        }
+        
+        # Generate base profile
+        profile = {
+            'student_id': f"ST{str(uuid.uuid4())[:8]}",
+            'education_level': education_level,
+            'academic_data': academic_data,
+            'skills_data': skills_data,
+            'interests_data': interests_data,
+            'constraints': self.generate_constraints()
+        }
+        
+        # Add career preferences for higher education levels
+        if education_level in ['UNDERGRADUATE', 'GRADUATE']:
+            profile['career_preferences'] = self.generate_career_preferences()
+        
+        # Determine career path
+        profile['career_path'] = self.determine_career_path(
+            ol_results,
+            academic_data.get('al_results', {}).get(stream.lower(), None) if 'al_stream' in academic_data else None,
+            skills_data
+        )
         
         return profile
     
