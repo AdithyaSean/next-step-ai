@@ -8,77 +8,179 @@ EDUCATION_LEVEL_DIST = {
     'GRADUATE': 0.1  # 10% graduates
 }
 
-# A/L Stream Distribution
-AL_STREAM_DIST = {
-    'PHYSICAL_SCIENCE': 0.25,
-    'BIOLOGICAL_SCIENCE': 0.25,
-    'COMMERCE': 0.3,
+# Grade Distributions
+GRADES = ['A', 'B', 'C', 'S', 'F']  # Updated to match Sri Lankan system
+GRADE_PROBABILITIES = {
+    'A': 0.15,  # Distinction Pass
+    'B': 0.25,  # Very Good Pass
+    'C': 0.30,  # Credit Pass
+    'S': 0.20,  # Simple Pass
+    'F': 0.10   # Fail
+}
+
+# O/L Core Subjects (Based on Sri Lankan O/L curriculum)
+OL_SUBJECTS = [
+    'mathematics',          # Mathematics
+    'science',             # Science
+    'english',             # English Language
+    'sinhala',             # First Language (Sinhala)
+    'religion',            # Religion (Buddhism/Hinduism/Islam/Christianity)
+    'history'              # History
+]
+
+# A/L Streams and Subjects (Updated for Sri Lankan A/L curriculum)
+AL_STREAMS = {
+    'PHYSICAL_SCIENCE': {
+        'compulsory': ['combined_maths', 'physics'],
+        'optional': ['chemistry', 'ict'],
+        'weights': {
+            'chemistry': 0.8,  # Most common
+            'ict': 0.2
+        }
+    },
+    'BIOLOGICAL_SCIENCE': {
+        'compulsory': ['biology', 'chemistry'],
+        'optional': ['physics', 'agriculture'],
+        'weights': {
+            'physics': 0.8,    # Most common
+            'agriculture': 0.2
+        }
+    },
+    'TECHNOLOGY': {
+        'compulsory': ['engineering_technology', 'science_for_technology'],
+        'optional': ['ict', 'science_for_tech_optional'],
+        'weights': {
+            'ict': 0.8,        # Most common
+            'science_for_tech_optional': 0.2
+        }
+    },
+    'COMMERCE': {
+        'compulsory': ['business_studies', 'accounting'],
+        'optional': ['economics', 'business_statistics'],
+        'weights': {
+            'economics': 0.7,   # Most common
+            'business_statistics': 0.3
+        }
+    },
+    'ARTS': {
+        'compulsory': ['logic', 'political_science'],
+        'optional': ['geography', 'history', 'media_studies'],
+        'weights': {
+            'geography': 0.4,
+            'history': 0.4,
+            'media_studies': 0.2
+        }
+    }
+}
+
+# Stream selection weights (equal distribution)
+STREAM_WEIGHTS = {
+    'PHYSICAL_SCIENCE': 0.2,
+    'BIOLOGICAL_SCIENCE': 0.2,
+    'TECHNOLOGY': 0.2,
+    'COMMERCE': 0.2,
     'ARTS': 0.2
 }
 
-# University Field Distribution
-UNIVERSITY_FIELDS = {
-    'PHYSICAL_SCIENCE': [
-        'Computer Science',
-        'Engineering',
-        'Mathematics',
-        'Physics',
-        'Information Technology'
-    ],
-    'BIOLOGICAL_SCIENCE': [
-        'Medicine',
-        'Dentistry',
-        'Biomedical Science',
-        'Agriculture',
-        'Veterinary Science'
-    ],
-    'COMMERCE': [
-        'Business Administration',
-        'Finance',
-        'Accounting',
-        'Economics',
-        'Management'
-    ],
-    'ARTS': [
-        'Languages',
-        'Social Sciences',
-        'Psychology',
-        'Law',
-        'Education'
-    ]
+# Stream Distribution (Updated with Technology stream)
+STREAM_DISTRIBUTION = {
+    'PHYSICAL_SCIENCE': 0.20,
+    'BIOLOGICAL_SCIENCE': 0.20,
+    'TECHNOLOGY': 0.15,     # Added Technology stream
+    'COMMERCE': 0.25,
+    'ARTS': 0.20
 }
 
-# Grade Distributions (mean, std)
-GRADE_DISTRIBUTIONS = {
-    'OL': {
-        'mathematics': (65, 15),
-        'science': (70, 12),
-        'english': (75, 10),
-        'first_language': (80, 8),
-        'ict': (72, 13)
+# University Fields (Mapped to streams)
+UNIVERSITY_FIELDS = {
+    'PHYSICAL_SCIENCE': {
+        'fields': [
+            'Engineering',
+            'Computer_Science',
+            'Mathematics',
+            'Physics',
+            'Information_Technology'
+        ],
+        'weights': {
+            'Engineering': 0.3,
+            'Computer_Science': 0.3,
+            'Mathematics': 0.2,
+            'Physics': 0.1,
+            'Information_Technology': 0.1
+        }
     },
-    'AL': {
-        'PHYSICAL_SCIENCE': {
-            'physics': (68, 12),
-            'combined_maths': (65, 15),
-            'chemistry': (70, 10)
-        },
-        'BIOLOGICAL_SCIENCE': {
-            'biology': (72, 10),
-            'physics': (65, 12),
-            'chemistry': (70, 10)
-        },
-        'COMMERCE': {
-            'business_studies': (75, 8),
-            'accounting': (73, 10),
-            'economics': (70, 12)
-        },
-        'ARTS': {
-            'subject1': (78, 8),
-            'subject2': (75, 10),
-            'subject3': (73, 12)
+    'BIOLOGICAL_SCIENCE': {
+        'fields': [
+            'Medicine',
+            'Dentistry',
+            'Veterinary_Science',
+            'Agriculture',
+            'Bio_Science'
+        ],
+        'weights': {
+            'Medicine': 0.3,
+            'Dentistry': 0.2,
+            'Veterinary_Science': 0.2,
+            'Agriculture': 0.15,
+            'Bio_Science': 0.15
+        }
+    },
+    'TECHNOLOGY': {
+        'fields': [
+            'Engineering_Technology',
+            'Information_Technology',
+            'Industrial_Technology',
+            'Food_Technology',
+            'Bio_Systems_Technology'
+        ],
+        'weights': {
+            'Engineering_Technology': 0.3,
+            'Information_Technology': 0.3,
+            'Industrial_Technology': 0.2,
+            'Food_Technology': 0.1,
+            'Bio_Systems_Technology': 0.1
+        }
+    },
+    'COMMERCE': {
+        'fields': [
+            'Business_Administration',
+            'Finance',
+            'Accounting',
+            'Economics',
+            'Management'
+        ],
+        'weights': {
+            'Business_Administration': 0.25,
+            'Finance': 0.25,
+            'Accounting': 0.2,
+            'Economics': 0.15,
+            'Management': 0.15
+        }
+    },
+    'ARTS': {
+        'fields': [
+            'Law',
+            'Social_Sciences',
+            'Education',
+            'Languages',
+            'Fine_Arts',
+            'Media_Studies'
+        ],
+        'weights': {
+            'Law': 0.2,
+            'Social_Sciences': 0.2,
+            'Education': 0.2,
+            'Languages': 0.15,
+            'Fine_Arts': 0.15,
+            'Media_Studies': 0.1
         }
     }
+}
+
+# Field Distribution within Streams
+FIELD_DISTRIBUTION = {
+    stream: {field: 1/len(fields) for field in fields}
+    for stream, fields in UNIVERSITY_FIELDS.items()
 }
 
 # Skills Distribution (mean, std) for 1-5 scale
