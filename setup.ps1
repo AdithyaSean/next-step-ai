@@ -38,13 +38,9 @@ python -m pip install -e .
 # Create necessary directories
 Write-Host "�️ Creating project directories..."
 $directories = @(
-    "src/data/raw",
-    "src/data/processed",
-    "src/data/generators",
-    "src/data/preprocessors",
-    "src/models/train",
-    "src/models/server",
-    "logs"
+    "data",
+    "logs",
+    "models",
 )
 
 foreach ($dir in $directories) {
