@@ -67,12 +67,20 @@ python -m train
 ```
 next-step-ai/
 ├── data/
-│   ├── processed/      # Preprocessed datasets
-│   └── raw/           # Raw datasets
+│   ├── processed/            # Preprocessed datasets
+│   └── raw/                  # Raw datasets
 ├── models/
-│   ├── saved/         # Trained model files
-│   └── train.py       # Model training script
+│   ├── saved/                # Trained model files
+│   └── converted/            # Converted model files
 └── src/
+    ├── config/               # Data Configuration
+    │   ├── config.py
+    ├── generators/           # Dataset generation scripts
+    │   ├── generator.py
+    ├── train/                # Dataset preprocessing scripts
+    │   ├── preprocess.py
+    ├── train/                # Train scripts
+        └── train.py
 ```
 
 ## 📊 Future Improvements

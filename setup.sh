@@ -37,9 +37,9 @@ python3 -m pip install -e .
 
 # Create necessary directories
 echo "🗂️ Creating project directories..."
-mkdir -p src/data/{raw,processed,generators,preprocessors}
-mkdir -p src/models/{train,server}
+mkdir -p data
 mkdir -p logs
+mkdir -p models
 
 # Set up pre-commit hooks if git is initialized
 if [ -d ".git" ]; then
