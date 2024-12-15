@@ -50,7 +50,7 @@ temp/
 *.tmp
 
 # Model files and artifacts
-models/
+/models
 
 # Coverage reports
 .coverage
