@@ -11,8 +11,7 @@ setup(
         "numpy",
         "pandas",
         "scikit-learn",
-        "lightgbm",
-        "pre-commit",
         "joblib",
+        "pre-commit",
     ],
 )
