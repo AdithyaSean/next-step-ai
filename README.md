@@ -47,16 +47,19 @@ Based on synthetic data:
    .\setup.ps1 # for Windows
    ```
 
-### Training the Model
+### Training the Model and Usages
 ```bash
+# All in one
+python -m main
+
 # Generate synthetic dataset
-python -m generate
+python -m src.generators.generator
 
 # Preprocess the data
-python -m preprocess
+python -m src.preprocessors.preprocessor
 
 # Train the model
-python -m train
+python -m src.train.trainer
 ```
 
 ## 📁 Project Structure

@@ -2,37 +2,42 @@
 
 import sys
 
+from src.generators.generator import generate_synthetic_data
+from src.preprocessors.preprocessor import preprocess_data
+from src.train.trainer import train_model
+
 
 def main():
     """Execute the main application logic based on command-line arguments."""
-    if len(sys.argv) < 2:
-        print("Please provide a command.")
-        print("Available commands: generate, process, train, run")
-        sys.exit(1)
-
-    command = sys.argv[1]
+    # ask for the command
+    # generate, process, train, run
+    print("Welcome to the Next-Step AI application!")
+    print("Available commands: generate, process, train, run")
+    command = input("Enter a command: ")
 
     try:
-        from src.data.preprocessors.preprocessor import preprocess_data
-        from src.generators.generator import generate_synthetic_data
-        from src.models.train.trainer import train_model
-
         if command == "generate":
             print("Generating synthetic dataset...")
+            generate_synthetic_data()
             generate_synthetic_data()
         elif command == "process":
             print("Processing data...")
             preprocess_data()
+            preprocess_data()
         elif command == "train":
             print("Training model...")
+            train_model()
             train_model()
         elif command == "run":
             print("Running all steps...")
             print("\nStep 1: Generating synthetic dataset...")
             generate_synthetic_data()
+            generate_synthetic_data()
             print("\nStep 2: Processing data...")
             preprocess_data()
+            preprocess_data()
             print("\nStep 3: Training model...")
+            train_model()
             train_model()
         else:
             print(f"Unknown command: {command}")

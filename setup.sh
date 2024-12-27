@@ -35,12 +35,6 @@ python3 -m pip install --upgrade -r requirements.txt
 echo "🛠️ Installing package in development mode..."
 python3 -m pip install -e .
 
-# Create necessary directories
-echo "🗂️ Creating project directories..."
-mkdir -p data
-mkdir -p logs
-mkdir -p models
-
 # Set up pre-commit hooks if git is initialized
 if [ -d ".git" ]; then
     echo "🔩 Setting up pre-commit hooks..."
