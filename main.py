@@ -9,8 +9,6 @@ from src.train.trainer import train_model
 
 def main():
     """Execute the main application logic based on command-line arguments."""
-    # ask for the command
-    # generate, process, train, run
     print("Welcome to the Next-Step AI application!")
     print("Available commands: generate, process, train, run")
     command = input("Enter a command: ")
@@ -19,25 +17,19 @@ def main():
         if command == "generate":
             print("Generating synthetic dataset...")
             generate_synthetic_data()
-            generate_synthetic_data()
         elif command == "process":
             print("Processing data...")
             preprocess_data()
-            preprocess_data()
         elif command == "train":
             print("Training model...")
-            train_model()
             train_model()
         elif command == "run":
             print("Running all steps...")
             print("\nStep 1: Generating synthetic dataset...")
             generate_synthetic_data()
-            generate_synthetic_data()
             print("\nStep 2: Processing data...")
             preprocess_data()
-            preprocess_data()
             print("\nStep 3: Training model...")
-            train_model()
             train_model()
         else:
             print(f"Unknown command: {command}")
