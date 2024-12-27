@@ -9,12 +9,11 @@ from src.train.trainer import train_model
 
 def main():
     """Execute the main application logic based on command-line arguments."""
-    if len(sys.argv) < 2:
-        print("Please provide a command.")
-        print("Available commands: generate, process, train, run")
-        sys.exit(1)
-
-    command = sys.argv[1]
+    # ask for the command
+    # generate, process, train, run
+    print("Welcome to the Next-Step AI application!")
+    print("Available commands: generate, process, train, run")
+    command = input("Enter a command: ")
 
     try:
         if command == "generate":
