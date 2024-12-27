@@ -35,22 +35,6 @@ python -m pip install --upgrade -r requirements.txt
 Write-Host "🛠️ Installing package in development mode..."
 python -m pip install -e .
 
-# Create necessary directories
-Write-Host "�️ Creating project directories..."
-$directories = @(
-    "data",
-    "logs",
-    "models",
-)
-
-foreach ($dir in $directories) {
-    $dir = $dir.Replace("/", "\")  # Convert to Windows path
-    if (-not (Test-Path $dir)) {
-        New-Item -ItemType Directory -Path $dir -Force
-        Write-Host "Created directory: $dir"
-    }
-}
-
 # Set up pre-commit hooks if git is initialized
 if (Test-Path ".git") {
     Write-Host "🔩 Setting up pre-commit hooks..."

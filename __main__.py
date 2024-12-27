@@ -2,6 +2,10 @@
 
 import sys
 
+from src.generators.generator import generate_synthetic_data
+from src.preprocessors.preprocessor import preprocess_data
+from src.train.trainer import train_model
+
 
 def main():
     """Execute the main application logic based on command-line arguments."""
@@ -13,10 +17,6 @@ def main():
     command = sys.argv[1]
 
     try:
-        from src.data.preprocessors.preprocessor import preprocess_data
-        from src.generators.generator import generate_synthetic_data
-        from src.models.train.trainer import train_model
-
         if command == "generate":
             print("Generating synthetic dataset...")
             generate_synthetic_data()
