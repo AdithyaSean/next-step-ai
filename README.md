@@ -77,9 +77,9 @@ next-step-ai/
     │   ├── config.py
     ├── generators/           # Dataset generation scripts
     │   ├── generator.py
-    ├── train/                # Dataset preprocessing scripts
-    │   ├── preprocess.py
-    ├── train/                # Train scripts
+    ├── preprocess/           # Dataset preprocessing scripts
+    │   ├── preprocessor.py
+    └── train/                # Train scripts
         └── train.py
 ```
 

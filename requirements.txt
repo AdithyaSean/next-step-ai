@@ -6,6 +6,4 @@ wheel
 numpy
 pandas
 scikit-learn
-lightgbm
-tensorflow
 pre-commit

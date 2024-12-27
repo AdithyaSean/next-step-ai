@@ -11,9 +11,7 @@ dependencies = [
     "numpy",
     "pandas",
     "scikit-learn",
-    "lightgbm",
     "pre-commit",
-    "joblib",
     "setuptools",
     "wheel"
 ]
