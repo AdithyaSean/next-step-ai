@@ -9,8 +9,6 @@ from src.train.trainer import train_model
 
 def main():
     """Execute the main application logic based on command-line arguments."""
-    # ask for the command
-    # generate, process, train, run
     print("Welcome to the Next-Step AI application!")
     print("Available commands: generate, process, train, run")
     command = input("Enter a command: ")
