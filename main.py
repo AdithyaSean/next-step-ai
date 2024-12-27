@@ -19,25 +19,19 @@ def main():
         if command == "generate":
             print("Generating synthetic dataset...")
             generate_synthetic_data()
-            generate_synthetic_data()
         elif command == "process":
             print("Processing data...")
             preprocess_data()
-            preprocess_data()
         elif command == "train":
             print("Training model...")
-            train_model()
             train_model()
         elif command == "run":
             print("Running all steps...")
             print("\nStep 1: Generating synthetic dataset...")
             generate_synthetic_data()
-            generate_synthetic_data()
             print("\nStep 2: Processing data...")
             preprocess_data()
-            preprocess_data()
             print("\nStep 3: Training model...")
-            train_model()
             train_model()
         else:
             print(f"Unknown command: {command}")
