@@ -13,27 +13,27 @@ def main():
     command = sys.argv[1]
 
     try:
-        from src.data.generators.generate import generate
-        from src.data.preprocessors.preprocess import preprocess
-        from src.models.train.train import train
+        from src.data.preprocessors.preprocessor import preprocess_data
+        from src.generators.generator import generate_synthetic_data
+        from src.models.train.trainer import train_model
 
         if command == "generate":
             print("Generating synthetic dataset...")
-            generate()
+            generate_synthetic_data()
         elif command == "process":
             print("Processing data...")
-            preprocess()
+            preprocess_data()
         elif command == "train":
             print("Training model...")
-            train()
+            train_model()
         elif command == "run":
             print("Running all steps...")
             print("\nStep 1: Generating synthetic dataset...")
-            generate()
+            generate_synthetic_data()
             print("\nStep 2: Processing data...")
-            preprocess()
+            preprocess_data()
             print("\nStep 3: Training model...")
-            train()
+            train_model()
         else:
             print(f"Unknown command: {command}")
             print("Available commands: generate, process, train, run")

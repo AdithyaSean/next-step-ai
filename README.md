@@ -1,7 +1,7 @@
 # NEXT STEP: Career Guidance AI Model
 
 ## Overview
-This repository contains the AI model component for the Next Step career guidance application. The model uses a LightGBM for multi-label classification to predict suitable career paths based on student academic performance and interests.
+This repository contains the AI model component for the Next Step career guidance application. The model uses randomforest classification to predict suitable career paths based on student academic performance and interests.
 
 ## Features
 - **Multi-label Career Path Prediction:** Predicts multiple suitable career paths simultaneously
@@ -14,10 +14,9 @@ This repository contains the AI model component for the Next Step career guidanc
 - **Python 3.12+**
 - **scikit-learn:** LightGBM for multi-label classification
 - **pandas & numpy:** Data processing and numerical operations
-- **tensorflow:** Model serialization
 
 ## Model Architecture
-- **Type:** LightGBM Classifier with MultiOutputClassifier
+- **Type:** Scikit Learn RandomForest Classifiers
 - **Features:** 49 input features including:
   - O/L results (mathematics, science, english, etc.)
   - A/L results (if applicable)
@@ -25,6 +24,7 @@ This repository contains the AI model component for the Next Step career guidanc
   - Z-score (if applicable)
   - Interests (encoded as binary features)
   - Other academic indicators
+  - location, financial status and other..
 - **Output:**
     **5 probability percentages indicators for top 5**
     - AL streams if the student level is OL
@@ -33,11 +33,7 @@ This repository contains the AI model component for the Next Step career guidanc
 
 ## Current Performance
 Based on synthetic data:
-- Average Accuracy: >99% across all career paths
-- Precision & Recall: >0.94 for all classes
-- F1-Score: >0.94 for all classes
 
-Note: These metrics are based on synthetic data and may not reflect real-world performance.
 
 ## 🚀 Getting Started
 
