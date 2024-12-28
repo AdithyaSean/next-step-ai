@@ -52,6 +52,9 @@ Based on synthetic data:
 # All in one
 python -m main run
 
+# Send Requests to the trained model
+python -m main predict
+
 # Generate synthetic dataset
 python -m main generate
 
@@ -76,6 +79,8 @@ next-step-ai/
     │   ├── config.py
     ├── generators/           # Dataset generation scripts
     │   ├── generator.py
+    ├── predictor/            # Model prediction test scripts
+    │   ├── predictor.py
     ├── preprocess/           # Dataset preprocessing scripts
     │   ├── preprocessor.py
     └── train/                # Train scripts

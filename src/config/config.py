@@ -13,7 +13,7 @@ OL_SUBJECTS = {
     "Religion": 5,
 }
 
-# AL stream and subject mappings
+# AL stream mappings
 AL_STREAMS = {
     "Physical Science": 0,
     "Biological Science": 1,
@@ -22,6 +22,7 @@ AL_STREAMS = {
     "Technology": 4,
 }
 
+# AL subject mappings
 AL_SUBJECTS = {
     "Physics": 0,
     "Chemistry": 1,
