@@ -14,5 +14,6 @@ dependencies = [
     "pre-commit",
     "joblib",
     "setuptools",
-    "wheel"
+    "wheel",
+    "matplotlib"
 ]

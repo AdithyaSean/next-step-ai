@@ -13,5 +13,6 @@ setup(
         "scikit-learn",
         "joblib",
         "pre-commit",
+        "matplotlib",
     ],
 )

@@ -8,3 +8,4 @@ pandas
 scikit-learn
 pre-commit
 joblib
+matplotlib
