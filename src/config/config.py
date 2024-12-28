@@ -1,7 +1,7 @@
 """Configuration for data generation and preprocessing."""
 
 # Education level mapping
-EDUCATION_LEVELS = {"OL_only": 0, "OL_AL": 1, "OL_AL_UNI": 2, "UNI_only": 3}
+EDUCATION_LEVELS = {"OL": 0, "AL": 1, "UNI": 2}
 
 # Subject mappings
 OL_SUBJECTS = {
@@ -54,10 +54,9 @@ config = {
     "processed_dir": "./data/processed",
     "education_levels": EDUCATION_LEVELS,
     "education_level_dist": {
-        EDUCATION_LEVELS["OL_only"]: 0.3,
-        EDUCATION_LEVELS["OL_AL"]: 0.5,
-        EDUCATION_LEVELS["OL_AL_UNI"]: 0.15,
-        EDUCATION_LEVELS["UNI_only"]: 0.05,
+        EDUCATION_LEVELS["OL"]: 0.4,
+        EDUCATION_LEVELS["AL"]: 0.5,
+        EDUCATION_LEVELS["UNI"]: 0.1,
     },
     "ol_subjects": OL_SUBJECTS,
     "al_streams": AL_STREAMS,
