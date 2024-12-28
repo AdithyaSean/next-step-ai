@@ -14,82 +14,89 @@ def predict(
     gpa: Optional[float] = None,
 ) -> Dict[str, float]:
     """Predict career probabilities based on educational profile."""
-    # Load model and metadata
-    model = joblib.load("./models/saved/career_prediction_model.pkl")
-    metadata = joblib.load("./models/saved/model_metadata.pkl")
+    # Load model, scaler and metadata
+    model = joblib.load("./models/career_predictor.joblib")
+    metadata = joblib.load("./models/model_metadata.joblib")
+    scaler = joblib.load("./models/scaler.joblib")
 
-    # Initialize features with zeros and correct data types
+    # Initialize features with zeros
     feature_dict = {name: 0.0 for name in metadata["feature_names"]}
 
-    # Fill in features with validated data
-    feature_dict["education_level"] = float(education_level)
+    # Set education level
+    feature_dict["education_level"] = education_level
 
-    # Handle OL results
-    for subject, score in ol_results.items():
-        col_name = f"ol_subject_{subject}"
-        if col_name in feature_dict:
-            feature_dict[col_name] = float(score)
+    # Map OL results
+    for subject_id, score in ol_results.items():
+        feature_name = f"OL_subject_{subject_id}_score"
+        if feature_name in feature_dict:
+            feature_dict[feature_name] = score
 
-    # Handle AL/University features
+    # Map AL results if applicable
     if education_level >= 1 and al_stream is not None:
-        feature_dict["AL_stream"] = float(al_stream)
+        feature_dict["AL_stream"] = al_stream
         if al_results:
-            for subject, score in al_results.items():
-                col_name = f"al_subject_{subject}"
-                if col_name in feature_dict:
-                    feature_dict[col_name] = float(score)
+            for subject_id, score in al_results.items():
+                feature_name = f"AL_subject_{subject_id}_score"
+                if feature_name in feature_dict:
+                    feature_dict[feature_name] = score
 
+    # Add GPA for university students
     if education_level == 2 and gpa is not None:
-        feature_dict["gpa"] = float(gpa)
+        feature_dict["gpa"] = gpa
 
-    # Create DataFrame with pre-filled values
+    # Create features DataFrame
     features = pd.DataFrame([feature_dict])
 
-    # Make prediction
-    probs = model.predict(features)
+    # Normalize features
+    features_scaled = pd.DataFrame(scaler.transform(features), columns=features.columns)
 
-    # Format results as dictionary with Python float values
+    # Ensure correct feature order
+    features_scaled = features_scaled[metadata["feature_names"]]
+
+    # Make prediction
+    predictions = model.predict(features_scaled)[0]
+
+    # Map predictions to careers
     return {
         career: float(prob * 100)
-        for career, prob in zip(metadata["career_names"], probs[0])
+        for career, prob in zip(metadata["career_names"], predictions)
     }
 
 
 def predictor():
     """Run example predictions."""
-    # Test OL student
+    # Example OL student
     ol_results = {
-        "OL_subject_0_score": 85,  # Math
-        "OL_subject_1_score": 78,  # Science
-        "OL_subject_2_score": 72,  # English
-        "OL_subject_3_score": 65,  # Sinhala
-        "OL_subject_4_score": 70,  # History
-        "OL_subject_5_score": 75,  # Religion
+        "0": 85,  # Math
+        "1": 78,  # Science
+        "2": 72,  # English
+        "3": 65,  # Sinhala
+        "4": 70,  # History
+        "5": 75,  # Religion
     }
+
     print("\nOL Student Profile:")
     print("==================")
     print("\nPredicted Career Probabilities:")
     print(predict(education_level=0, ol_results=ol_results))
 
-    # Test AL Science student
+    # Example AL Science student
     al_results = {
-        "AL_subject_0_score": 88,  # Physics
-        "AL_subject_1_score": 82,  # Chemistry
-        "AL_subject_2_score": 90,  # Combined Maths
+        "0": 88,  # Physics
+        "1": 82,  # Chemistry
+        "2": 90,  # Combined Maths
     }
+
     print("\nAL Science Student Profile:")
     print("=========================")
     print("\nPredicted Career Probabilities:")
     print(
         predict(
-            education_level=1,
-            ol_results=ol_results,
-            al_stream=0,  # Physical Science
-            al_results=al_results,
+            education_level=1, ol_results=ol_results, al_stream=0, al_results=al_results
         )
     )
 
-    # Test University student
+    # Example University student
     print("\nUniversity Student Profile:")
     print("=========================")
     print("\nPredicted Career Probabilities:")

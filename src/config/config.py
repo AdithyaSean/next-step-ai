@@ -53,6 +53,7 @@ config = {
     "num_students": 5000,
     "data_dir": "./data/raw",
     "processed_dir": "./data/processed",
+    "model_dir": "./models",
     "education_levels": EDUCATION_LEVELS,
     "education_level_dist": {
         EDUCATION_LEVELS["OL"]: 0.4,

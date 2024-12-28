@@ -2,6 +2,7 @@
 
 import os
 
+import joblib
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
@@ -22,6 +23,10 @@ def preprocessor():
     features_scaled = pd.DataFrame(
         scaler.fit_transform(features), columns=features.columns
     )
+
+    # Save scaler for predictions
+    os.makedirs(config["model_dir"], exist_ok=True)
+    joblib.dump(scaler, f"{config['model_dir']}/scaler.joblib")
 
     os.makedirs(config["processed_dir"], exist_ok=True)
     features_scaled.to_csv(f"{config['processed_dir']}/features.csv", index=False)
