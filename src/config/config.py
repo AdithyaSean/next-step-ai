@@ -1,85 +1,100 @@
-"""config for data generation and preprocessing."""
+"""Configuration for data generation and preprocessing."""
+
+# Education level mapping
+EDUCATION_LEVELS = {"OL_only": 0, "OL_AL": 1, "OL_AL_UNI": 2, "UNI_only": 3}
+
+# Subject mappings
+OL_SUBJECTS = {
+    "Maths": 0,
+    "Science": 1,
+    "English": 2,
+    "Sinhala": 3,
+    "History": 4,
+    "Religion": 5,
+}
+
+# AL stream and subject mappings
+AL_STREAMS = {
+    "Physical Science": 0,
+    "Biological Science": 1,
+    "Commerce": 2,
+    "Arts": 3,
+    "Technology": 4,
+}
+
+AL_SUBJECTS = {
+    "Physics": 0,
+    "Chemistry": 1,
+    "Combined_Maths": 2,
+    "Biology": 3,
+    "Accounting": 4,
+    "Business_Studies": 5,
+    "Economics": 6,
+    "History": 7,
+    "Geography": 8,
+    "Politics": 9,
+    "Engineering_Tech": 10,
+    "Science_Tech": 11,
+    "ICT": 12,
+}
+
+# Career mappings
+CAREERS = {
+    "Engineering": 0,
+    "Medicine": 1,
+    "IT": 2,
+    "Business": 3,
+    "Teaching": 4,
+    "Research": 5,
+}
 
 config = {
-    "ol_subjects": ["Maths", "Science", "English", "Sinhala", "History", "Religion"],
-    "al_streams": {
-        "Physical Science": ["Physics", "Chemistry", "Combined Maths"],
-        "Biological Science": ["Biology", "Chemistry", "Physics/Agriculture"],
-        "Commerce": ["Accounting", "Business Studies", "Economics"],
-        "Arts": ["History", "Geography", "Logic/Political Science/Language"],
-        "Technology": [
-            "Engineering Technology",
-            "Science for Technology",
-            "Information & Communication Technology",
-        ],
-    },
-    "university_courses": {
-        "Physical Science": [
-            "Engineering",
-            "Physical Science",
-            "Computer Science",
-            "Architecture",
-        ],
-        "Biological Science": [
-            "Medicine",
-            "Dentistry",
-            "Veterinary Medicine",
-            "Biological Science",
-            "Agriculture",
-        ],
-        "Commerce": [
-            "Commerce/Management",
-            "Business Administration",
-            "Finance",
-            "Accounting",
-        ],
-        "Arts": ["Arts", "Law", "Social Sciences", "Languages"],
-        "Technology": [
-            "Engineering Technology",
-            "Information Technology",
-            "Quantity Surveying",
-        ],
-    },
-    "career_paths": {
-        "Engineering": [
-            "Civil Engineer",
-            "Mechanical Engineer",
-            "Electrical Engineer",
-            "Software Engineer",
-        ],
-        "Physical Science": ["Physicist", "Chemist", "Data Scientist", "Researcher"],
-        "Computer Science": [
-            "Software Developer",
-            "Data Analyst",
-            "Cybersecurity Analyst",
-            "AI Engineer",
-        ],
-        "Architecture": ["Architect", "Urban Planner", "Interior Designer"],
-        "Medicine": ["Doctor", "Surgeon", "Specialist"],
-        "Dentistry": ["Dentist"],
-        "Veterinary Medicine": ["Veterinarian"],
-        "Biological Science": ["Biologist", "Zoologist", "Botanist"],
-        "Agriculture": ["Agricultural Scientist", "Farmer", "Food Scientist"],
-        "Commerce/Management": ["Manager", "Consultant", "Entrepreneur"],
-        "Business Administration": [
-            "Business Analyst",
-            "Marketing Manager",
-            "HR Manager",
-        ],
-        "Finance": ["Financial Analyst", "Accountant", "Investment Banker"],
-        "Accounting": ["Accountant", "Auditor", "Financial Controller"],
-        "Arts": ["Teacher", "Historian", "Writer", "Journalist"],
-        "Law": ["Lawyer", "Judge", "Legal Consultant"],
-        "Social Sciences": ["Sociologist", "Psychologist", "Economist"],
-        "Languages": ["Translator", "Interpreter", "Linguist"],
-        "Engineering Technology": ["Technician", "Technologist", "Project Manager"],
-        "Information Technology": [
-            "IT Specialist",
-            "Network Administrator",
-            "System Analyst",
-        ],
-        "Quantity Surveying": ["Quantity Surveyor"],
-    },
-    "num_students": 1000,
+    "num_students": 5000,
     "data_dir": "./data/raw",
+    "processed_dir": "./data/processed",
+    "education_levels": EDUCATION_LEVELS,
+    "education_level_dist": {
+        EDUCATION_LEVELS["OL_only"]: 0.3,
+        EDUCATION_LEVELS["OL_AL"]: 0.5,
+        EDUCATION_LEVELS["OL_AL_UNI"]: 0.15,
+        EDUCATION_LEVELS["UNI_only"]: 0.05,
+    },
+    "ol_subjects": OL_SUBJECTS,
+    "al_streams": AL_STREAMS,
+    "al_subjects": {
+        AL_STREAMS["Physical Science"]: [
+            AL_SUBJECTS["Physics"],
+            AL_SUBJECTS["Chemistry"],
+            AL_SUBJECTS["Combined_Maths"],
+        ],
+        AL_STREAMS["Biological Science"]: [
+            AL_SUBJECTS["Biology"],
+            AL_SUBJECTS["Chemistry"],
+            AL_SUBJECTS["Physics"],
+        ],
+        AL_STREAMS["Commerce"]: [
+            AL_SUBJECTS["Accounting"],
+            AL_SUBJECTS["Business_Studies"],
+            AL_SUBJECTS["Economics"],
+        ],
+        AL_STREAMS["Arts"]: [
+            AL_SUBJECTS["History"],
+            AL_SUBJECTS["Geography"],
+            AL_SUBJECTS["Politics"],
+        ],
+        AL_STREAMS["Technology"]: [
+            AL_SUBJECTS["Engineering_Tech"],
+            AL_SUBJECTS["Science_Tech"],
+            AL_SUBJECTS["ICT"],
+        ],
+    },
+    "careers": CAREERS,
+    "career_success_ranges": {
+        CAREERS["Engineering"]: (0.6, 0.95),
+        CAREERS["Medicine"]: (0.65, 0.92),
+        CAREERS["IT"]: (0.55, 0.90),
+        CAREERS["Business"]: (0.50, 0.85),
+        CAREERS["Teaching"]: (0.45, 0.80),
+        CAREERS["Research"]: (0.58, 0.88),
+    },
 }

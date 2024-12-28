@@ -2,42 +2,47 @@
 
 import sys
 
-from src.generators.generator import generate_synthetic_data
-from src.preprocessors.preprocessor import preprocess_data
-from src.train.trainer import train_model
+from src.generators.generator import generator
+from src.preprocessors.preprocessor import preprocessor
+from src.train.trainer import trainer
 
 
 def main():
     """Execute the main application logic based on command-line arguments."""
-    print("Welcome to the Next-Step AI application!")
-    print("Available commands: generate, process, train, run")
-    command = input("Enter a command: ")
+    if len(sys.argv) < 2:
+        print("Usage: python -m main [command]")
+        print("Available commands: generate, process, train, run")
+        sys.exit(1)
+
+    command = sys.argv[1].lower()
 
     try:
         if command == "generate":
             print("Generating synthetic dataset...")
-            generate_synthetic_data()
+            generator()
         elif command == "process":
             print("Processing data...")
-            preprocess_data()
+            preprocessor()
         elif command == "train":
             print("Training model...")
-            train_model()
+            trainer()
         elif command == "run":
             print("Running all steps...")
             print("\nStep 1: Generating synthetic dataset...")
-            generate_synthetic_data()
-            print("\nStep 2: Processing data...")
-            preprocess_data()
-            print("\nStep 3: Training model...")
-            train_model()
+            generator()
+            print("\nStep 2: Preprocessing and Trainining...")
+            trainer()
         else:
             print(f"Unknown command: {command}")
             print("Available commands: generate, process, train, run")
             sys.exit(1)
 
+        print("Operation completed successfully.")
     except ImportError as e:
         print(f"Error: Could not import required module. {str(e)}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"An error occurred during execution: {e}")
         sys.exit(1)
 
 

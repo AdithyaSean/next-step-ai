@@ -1,37 +1,44 @@
-"""preprocessor package."""
+"""Enhanced preprocessor for scikit-learn compatibility."""
 
 import os
 
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import StandardScaler
 
-from ..config.config import config
+from ..config.config import CAREERS, config
 
 
-def preprocess_data():
-    """Preprocess student data for model training."""
-    data_path = os.path.join(config["data_dir"], "synthetic_student_data.csv")
-    try:
-        data = pd.read_csv(data_path)
-    except FileNotFoundError:
-        print(f"Error: Data file not found at {data_path}")
-        return None
+def preprocessor():
+    """Preprocess data for model training."""
+    df = pd.read_csv(f"{config['data_dir']}/student_profiles.csv")
 
-    # Encode categorical features
-    categorical_cols = data.select_dtypes(include=["object"]).columns
-    encoders = {}
-    for col in categorical_cols:
-        encoders[col] = LabelEncoder()
-        data[col] = encoders[col].fit_transform(data[col])
+    # Separate features and target probabilities
+    career_columns = [f"career_{career_id}" for career_id in CAREERS.values()]
+    career_probs = df[career_columns]
+    features = df.drop(columns=career_columns + ["profile_id"])
 
-    # Save processed data
-    processed_data_dir = os.path.join("./data", "processed")
-    os.makedirs(processed_data_dir, exist_ok=True)
-    processed_data_path = os.path.join(processed_data_dir, "processed_data.csv")
-    data.to_csv(processed_data_path, index=False)
+    # Scale numerical features
+    scaler = StandardScaler()
+    features_scaled = pd.DataFrame(
+        scaler.fit_transform(features), columns=features.columns
+    )
 
-    return data, encoders
+    os.makedirs(config["processed_dir"], exist_ok=True)
+    features_scaled.to_csv(f"{config['processed_dir']}/features.csv", index=False)
+    career_probs.to_csv(f"{config['processed_dir']}/career_probs.csv", index=False)
+
+    print("\nDataset Summary:")
+    print(f"Total profiles: {len(df)}")
+    print(f"Feature columns: {len(features_scaled.columns)}")
+    print(f"Target careers: {len(career_probs.columns)}")
+
+    print("\nEducation Level Distribution:")
+    for level_name, level_id in config["education_levels"].items():
+        count = (df["education_level"] == level_id).sum()
+        print(f"{level_name}: {count}")
+
+    return features_scaled, career_probs
 
 
 if __name__ == "__main__":
-    preprocess_data()
+    preprocessor()

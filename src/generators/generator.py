@@ -1,61 +1,73 @@
-"""generator package."""
+"""Enhanced data generator."""
 
 import os
-import random
 
+import numpy as np
 import pandas as pd
 
-from ..config.config import config
+from ..config.config import AL_STREAMS, EDUCATION_LEVELS, config
 
 
-def generate_synthetic_data():
-    """Generate synthetic student data with realistic patterns."""
+def generator():
+    """Generate comprehensive student profiles with multiple education levels."""
     data = []
-    for _ in range(config["num_students"]):
-        student = {}
 
-        # O/L Results (Grades: A, B, C, S, W)
-        for subject in config["ol_subjects"]:
-            grades = ["A", "B", "C", "S", "W"]
-            student[f"OL_{subject}"] = random.choice(grades)
+    total_students = config["num_students"]
+    education_dist = config["education_level_dist"]
 
-        # A/L Stream and Results
-        stream = random.choice(list(config["al_streams"].keys()))
-        student["AL_Stream"] = stream
-        for subject in config["al_streams"][stream]:
-            grades = ["A", "B", "C", "S", "F"]
-            student[f"AL_{subject}"] = random.choice(grades)
+    def generate_ol_results():
+        return {
+            f"OL_subject_{idx}_score": np.random.randint(0, 100)
+            for idx in config["ol_subjects"].values()
+        }
 
-        # University Course (Based on A/L Stream)
-        courses = config["university_courses"][stream]
-        chosen_course = random.choice(courses)
-        student["University_Course"] = chosen_course
-        student["Recommended_Career"] = random.choice(
-            config["career_paths"][chosen_course]
+    def generate_al_results(stream_id):
+        return {
+            f"AL_subject_{sub_id}_score": np.random.randint(0, 100)
+            for sub_id in config["al_subjects"][stream_id]
+        }
+
+    def generate_career_probs():
+        return {
+            f"career_{career_id}": np.random.uniform(low, high)
+            for career_id, (low, high) in config["career_success_ranges"].items()
+        }
+
+    # Generate profiles for each education level
+    for _ in range(total_students):
+        profile = {"profile_id": _ + 1}
+        edu_type = np.random.choice(
+            list(education_dist.keys()), p=list(education_dist.values())
         )
 
-        data.append(student)
+        profile["education_level"] = edu_type
+
+        if edu_type in [
+            EDUCATION_LEVELS["OL_only"],
+            EDUCATION_LEVELS["OL_AL"],
+            EDUCATION_LEVELS["OL_AL_UNI"],
+        ]:
+            profile.update(generate_ol_results())
+
+        if edu_type in [EDUCATION_LEVELS["OL_AL"], EDUCATION_LEVELS["OL_AL_UNI"]]:
+            stream_id = np.random.choice(list(AL_STREAMS.values()))
+            profile["AL_stream"] = stream_id
+            profile.update(generate_al_results(stream_id))
+
+        if edu_type in [EDUCATION_LEVELS["OL_AL_UNI"], EDUCATION_LEVELS["UNI_only"]]:
+            profile["university_score"] = np.random.randint(60, 100)
+
+        profile.update(generate_career_probs())
+        data.append(profile)
 
     df = pd.DataFrame(data)
+    df = df.fillna(-1)
 
-    # Convert grades to numerical values (optional, but recommended)
-    grade_mapping_ol = {"A": 9, "B": 7, "C": 5, "S": 3, "W": 1}
-    grade_mapping_al = {"A": 10, "B": 8, "C": 6, "S": 4, "F": 0}
-
-    for subject in config["ol_subjects"]:
-        df[f"OL_{subject}_Numerical"] = df[f"OL_{subject}"].map(grade_mapping_ol)
-
-    for stream, subjects in config["al_streams"].items():
-        for subject in subjects:
-            df[f"AL_{subject}_Numerical"] = df[f"AL_{subject}"].map(grade_mapping_al)
-
-    # Create the directory if it does not exist
     os.makedirs(config["data_dir"], exist_ok=True)
-    file_path = os.path.join(config["data_dir"], "synthetic_student_data.csv")
-    df.to_csv(file_path, index=False)
-    print(f"Synthetic data generated and saved to {file_path}")
+    df.to_csv(f"{config['data_dir']}/student_profiles.csv", index=False)
+
     return df
 
 
 if __name__ == "__main__":
-    generate_synthetic_data()
+    generator()
