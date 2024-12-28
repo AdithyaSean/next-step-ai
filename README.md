@@ -59,7 +59,7 @@ python -m main generate
 python -m main process
 
 # Train the model
-python -m main trainer
+python -m main train
 ```
 
 ## 📁 Project Structure
@@ -79,7 +79,7 @@ next-step-ai/
     ├── preprocess/           # Dataset preprocessing scripts
     │   ├── preprocessor.py
     └── train/                # Train scripts
-        └── train.py
+        └── trainer.py
 ```
 
 ## 📊 Future Improvements
