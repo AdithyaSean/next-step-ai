@@ -50,16 +50,16 @@ Based on synthetic data:
 ### Training the Model and Usages
 ```bash
 # All in one
-python -m main
+python -m main run
 
 # Generate synthetic dataset
-python -m src.generators.generator
+python -m main generate
 
 # Preprocess the data
-python -m src.preprocessors.preprocessor
+python -m main process
 
 # Train the model
-python -m src.train.trainer
+python -m main train
 ```
 
 ## 📁 Project Structure
