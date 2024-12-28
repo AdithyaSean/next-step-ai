@@ -21,10 +21,10 @@ wheels/
 *.egg
 
 # large datasets
-*.csv
+/data
 
 # model files
-*.joblib
+/models
 
 # Virtual Environment
 venv/
