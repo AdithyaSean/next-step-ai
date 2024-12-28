@@ -11,7 +11,7 @@ def predict(
     ol_results: Dict[str, float],
     al_stream: Optional[int] = None,
     al_results: Optional[Dict[str, float]] = None,
-    uni_score: Optional[float] = None,
+    gpa: Optional[float] = None,
 ) -> Dict[str, float]:
     """Predict career probabilities based on educational profile."""
     # Load model and metadata
@@ -39,8 +39,8 @@ def predict(
                 if col_name in feature_dict:
                     feature_dict[col_name] = float(score)
 
-    if education_level == 2 and uni_score is not None:
-        feature_dict["university_score"] = float(uni_score)
+    if education_level == 2 and gpa is not None:
+        feature_dict["gpa"] = float(gpa)
 
     # Create DataFrame with pre-filled values
     features = pd.DataFrame([feature_dict])
@@ -99,7 +99,7 @@ def predictor():
             ol_results=ol_results,
             al_stream=0,
             al_results=al_results,
-            uni_score=85,
+            gpa=3.75,
         )
     )
 

@@ -90,11 +90,12 @@ config = {
     },
     "careers": CAREERS,
     "career_success_ranges": {
-        CAREERS["Engineering"]: (0.6, 0.95),
-        CAREERS["Medicine"]: (0.65, 0.92),
-        CAREERS["IT"]: (0.55, 0.90),
-        CAREERS["Business"]: (0.50, 0.85),
-        CAREERS["Teaching"]: (0.45, 0.80),
-        CAREERS["Research"]: (0.58, 0.88),
+        CAREERS["Engineering"]: (0.55, 0.95),
+        CAREERS["Medicine"]: (0.60, 0.92),
+        CAREERS["IT"]: (0.50, 0.90),
+        CAREERS["Business"]: (0.45, 0.85),
+        CAREERS["Teaching"]: (0.40, 0.80),
+        CAREERS["Research"]: (0.55, 0.88),
     },
+    "gpa_range": {"min": 2.0, "max": 4.0},  # Minimum passing GPA  # Maximum GPA
 }

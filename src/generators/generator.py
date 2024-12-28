@@ -35,7 +35,13 @@ def generator():
             prob = base_low
             edu_level = profile.get("education_level")
             stream = profile.get("AL_stream")
-            uni_score = profile.get("university_score", 0)
+            gpa = profile.get("gpa", 0)
+
+            # Normalize GPA to 0-100 scale for probability calculations
+            gpa_normalized = (
+                (gpa - config["gpa_range"]["min"])
+                / (config["gpa_range"]["max"] - config["gpa_range"]["min"])
+            ) * 100
 
             # Add OL subject contributions
             ol_math = profile.get(f"OL_subject_{OL_SUBJECTS['Maths']}_score", 0)
@@ -79,12 +85,12 @@ def generator():
             elif career_id == CAREERS["Teaching"]:
                 # All streams can lead to teaching
                 if edu_level in [EDUCATION_LEVELS["UNI"]]:
-                    prob += (uni_score / 100) * 0.3
+                    prob += (gpa_normalized / 100) * 0.3
 
             # Research careers
             elif career_id == CAREERS["Research"]:
                 if edu_level in [EDUCATION_LEVELS["UNI"]]:
-                    prob += (uni_score / 100) * 0.4
+                    prob += (gpa_normalized / 100) * 0.4
                     if stream in [
                         AL_STREAMS["Physical Science"],
                         AL_STREAMS["Biological Science"],
@@ -123,6 +129,11 @@ def generator():
 
         if edu_type in [EDUCATION_LEVELS["UNI"]]:
             profile["university_score"] = np.random.randint(60, 100)
+            # Generate GPA with most values clustering around 2.8-3.5
+            gpa = np.random.normal(3.2, 0.4)
+            # Clip to valid GPA range
+            gpa = np.clip(gpa, config["gpa_range"]["min"], config["gpa_range"]["max"])
+            profile["gpa"] = round(gpa, 2)
 
         profile.update(generate_career_probs(profile))
         data.append(profile)
