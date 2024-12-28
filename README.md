@@ -59,7 +59,7 @@ python -m main generate
 python -m main process
 
 # Train the model
-python -m main train
+python -m main trainer
 ```
 
 ## 📁 Project Structure
