@@ -20,12 +20,6 @@ wheels/
 .installed.cfg
 *.egg
 
-# large datasets
-/data
-
-# model files
-/models
-
 # Virtual Environment
 venv/
 
