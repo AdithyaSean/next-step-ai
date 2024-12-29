@@ -3,7 +3,25 @@
 from typing import Dict, Optional
 
 import joblib
+import numpy as np
 import pandas as pd
+
+from ..config.config import config
+
+
+def get_base_features() -> pd.DataFrame:
+    """Create DataFrame with training features structure."""
+    try:
+        # Load feature order from training
+        feature_order = joblib.load(f"{config['model_dir']}/feature_order.joblib")
+        feature_names = feature_order["feature_names"]
+
+        # Create DataFrame with correct columns
+        features = pd.DataFrame(columns=feature_names)
+        features.loc[0] = -1.0  # Initialize with -1
+        return features
+    except Exception as e:
+        raise RuntimeError(f"Failed to initialize features: {e}")
 
 
 def predict(
@@ -14,57 +32,52 @@ def predict(
     gpa: Optional[float] = None,
 ) -> Dict[str, float]:
     """Predict career probabilities based on educational profile."""
-    # Load model, scaler and metadata
-    model = joblib.load("./models/career_predictor.joblib")
-    metadata = joblib.load("./models/model_metadata.joblib")
-    scaler = joblib.load("./models/scaler.joblib")
+    try:
+        # Load model artifacts
+        model = joblib.load(f"{config['model_dir']}/career_predictor.joblib")
+        metadata = joblib.load(f"{config['model_dir']}/model_metadata.joblib")
 
-    # Initialize features with zeros
-    feature_dict = {name: 0.0 for name in metadata["feature_names"]}
+        # Initialize features
+        features = get_base_features()
 
-    # Set education level
-    feature_dict["education_level"] = education_level
+        # Set basic features
+        features.loc[0, "education_level"] = education_level
+        features.loc[0, "AL_stream"] = al_stream if al_stream is not None else -1
+        features.loc[0, "gpa"] = gpa if gpa is not None else -1
 
-    # Map OL results
-    for subject_id, score in ol_results.items():
-        feature_name = f"OL_subject_{subject_id}_score"
-        if feature_name in feature_dict:
-            feature_dict[feature_name] = score
+        # Set OL subject scores
+        for subject_id, score in ol_results.items():
+            col_name = f"OL_subject_{subject_id}_score"
+            if col_name in features.columns:
+                features.loc[0, col_name] = float(score)
 
-    # Map AL results if applicable
-    if education_level >= 1 and al_stream is not None:
-        feature_dict["AL_stream"] = al_stream
+        # Set AL subject scores
         if al_results:
             for subject_id, score in al_results.items():
-                feature_name = f"AL_subject_{subject_id}_score"
-                if feature_name in feature_dict:
-                    feature_dict[feature_name] = score
+                col_name = f"AL_subject_{subject_id}_score"
+                if col_name in features.columns:
+                    features.loc[0, col_name] = float(score)
 
-    # Add GPA for university students
-    if education_level == 2 and gpa is not None:
-        feature_dict["gpa"] = gpa
+        # Select features used by model
+        selected_features = metadata["feature_names"]
+        features_selected = features[selected_features]
 
-    # Create features DataFrame
-    features = pd.DataFrame([feature_dict])
+        # Make prediction
+        predictions = model.predict(features_selected)[0]
 
-    # Normalize features
-    features_scaled = pd.DataFrame(scaler.transform(features), columns=features.columns)
+        # Return career probabilities
+        return {
+            career: float(np.clip(prob * 100, 0, 100))
+            for career, prob in zip(metadata["career_names"], predictions)
+        }
 
-    # Ensure correct feature order
-    features_scaled = features_scaled[metadata["feature_names"]]
-
-    # Make prediction
-    predictions = model.predict(features_scaled)[0]
-
-    # Map predictions to careers
-    return {
-        career: float(prob * 100)
-        for career, prob in zip(metadata["career_names"], predictions)
-    }
+    except Exception as e:
+        print(f"Prediction error: {e}")
+        return {}
 
 
 def predictor():
-    """Run example predictions."""
+    """Run sample predictions."""
     # Example OL student
     ol_results = {
         "0": 85,  # Math

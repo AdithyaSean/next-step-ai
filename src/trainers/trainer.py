@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.feature_selection import SelectFromModel
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import (
     GridSearchCV,
@@ -76,32 +77,50 @@ def trainer():
     if features is None:
         return
 
-    # Split train/test
+    # Split train/test first
     X_train, X_test, y_train, y_test = train_test_split(
         features, targets, test_size=0.2, random_state=42
     )
 
+    # Initialize feature selector with proper feature names
+    selector = RandomForestRegressor(n_estimators=50, max_depth=8, random_state=42)
+    feature_selector = SelectFromModel(selector)
+
+    # Fit and transform while maintaining feature names
+    X_train_selected = pd.DataFrame(
+        feature_selector.fit_transform(X_train, y_train),
+        columns=X_train.columns[feature_selector.get_support()],
+    )
+
+    X_test_selected = pd.DataFrame(
+        feature_selector.transform(X_test),
+        columns=X_train.columns[feature_selector.get_support()],
+    )
+
+    # Store selected feature names
+    selected_features = X_train_selected.columns.tolist()
+
     # Define model and parameters
     model = RandomForestRegressor(random_state=42)
     param_grid = {
-        "n_estimators": [100, 200, 300],
-        "max_depth": [5, 10, 15, 20, None],
-        "min_samples_split": [2, 5, 10],
-        "min_samples_leaf": [1, 2, 4],
-        "max_features": ["sqrt", "log2", None],
+        "n_estimators": [50, 100],
+        "max_depth": [5, 8, 10],
+        "min_samples_split": [5, 10],
+        "min_samples_leaf": [2, 4],
+        "max_features": ["sqrt"],
     }
 
     # Grid search
     grid_search = GridSearchCV(
         model, param_grid, cv=5, n_jobs=-1, scoring="r2", verbose=2
     )
-    grid_search.fit(X_train, y_train)
+    grid_search.fit(X_train_selected, y_train)
 
     # Get best model
     best_model = grid_search.best_estimator_
 
     # Now do cross-validation
-    cv_scores = cross_val_score(best_model, X_train, y_train, cv=5)
+    cv_scores = cross_val_score(best_model, X_train_selected, y_train, cv=5)
     print(f"\nCross-validation scores: {cv_scores}")
     print(f"Mean CV score: {cv_scores.mean():.4f} (+/- {cv_scores.std() * 2:.4f})")
 
@@ -109,31 +128,37 @@ def trainer():
     print("\nBest parameters:", grid_search.best_params_)
 
     # Plot learning curves
-    plot_learning_curves(best_model, X_train, y_train)
+    plot_learning_curves(best_model, X_train_selected, y_train)
 
-    # Feature importance analysis
+    # Fix feature importance analysis
     feature_importance = pd.DataFrame(
-        {"feature": features.columns, "importance": best_model.feature_importances_}
+        {"feature": selected_features, "importance": best_model.feature_importances_}
     ).sort_values("importance", ascending=False)
     print("\nTop 10 most important features:")
     print(feature_importance.head(10))
 
     os.makedirs(config["model_dir"], exist_ok=True)
 
-    # Save model and metadata
+    # Save metadata with proper feature names
     metadata = {
-        "feature_names": features.columns.tolist(),
+        "feature_names": selected_features,
         "career_names": list(CAREERS.keys()),
         "best_params": grid_search.best_params_,
-        "cv_scores": {"mean": cv_scores.mean(), "std": cv_scores.std()},
+        "cv_scores": {"mean": float(cv_scores.mean()), "std": float(cv_scores.std())},
     }
 
+    # Save model and metadata
     joblib.dump(best_model, f"{config['model_dir']}/career_predictor.joblib")
     joblib.dump(metadata, f"{config['model_dir']}/model_metadata.joblib")
-    feature_importance.to_csv(f"{config['model_dir']}/feature_importance.csv")
+    joblib.dump(feature_selector, f"{config['model_dir']}/feature_selector.joblib")
+
+    # Save feature importance
+    feature_importance.to_csv(
+        f"{config['model_dir']}/feature_importance.csv", index=False
+    )
 
     # Evaluate on test set
-    y_pred = best_model.predict(X_test)
+    y_pred = best_model.predict(X_test_selected)
 
     print("\nModel Performance:\n")
     for i, career in enumerate(CAREERS.keys()):

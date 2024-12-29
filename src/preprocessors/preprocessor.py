@@ -18,15 +18,27 @@ def preprocessor():
     career_probs = df[career_columns]
     features = df.drop(columns=career_columns + ["profile_id"])
 
+    # Store original feature names
+    feature_names = features.columns.tolist()
+
     # Scale numerical features
     scaler = StandardScaler()
     features_scaled = pd.DataFrame(
-        scaler.fit_transform(features), columns=features.columns
+        scaler.fit_transform(features),
+        columns=feature_names,  # Explicitly set column names
     )
 
-    # Save scaler for predictions
+    # Save scaler and feature names
     os.makedirs(config["model_dir"], exist_ok=True)
     joblib.dump(scaler, f"{config['model_dir']}/scaler.joblib")
+    joblib.dump(feature_names, f"{config['model_dir']}/feature_names.joblib")
+
+    # Save feature order with scaler
+    feature_order = {
+        "feature_names": features.columns.tolist(),
+        "feature_order": {name: idx for idx, name in enumerate(features.columns)},
+    }
+    joblib.dump(feature_order, f"{config['model_dir']}/feature_order.joblib")
 
     os.makedirs(config["processed_dir"], exist_ok=True)
     features_scaled.to_csv(f"{config['processed_dir']}/features.csv", index=False)
